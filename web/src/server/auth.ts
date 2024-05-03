@@ -6,11 +6,13 @@ import {
   type NextAuthOptions,
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
-import DiscordProvider from "next-auth/providers/discord";
+import Google from "next-auth/providers/google";
 
 import { env } from "~/env";
 import { db } from "~/server/db";
 import { createTable } from "~/server/db/schema";
+
+const ALLOWED_EMAILS = ["artur8879@gmail.com"];
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -47,12 +49,27 @@ export const authOptions: NextAuthOptions = {
         id: user.id,
       },
     }),
+
+    async signIn({ user, profile }) {
+      const isAllowedToSignIn = ALLOWED_EMAILS.includes(
+        user.email ?? profile?.email ?? "",
+      );
+
+      if (isAllowedToSignIn) {
+        return true;
+      } else {
+        // Return false to display a default error message
+        return "/not-registered";
+        // Or you can return a URL to redirect to:
+        // return '/unauthorized'
+      }
+    },
   },
   adapter: DrizzleAdapter(db, createTable) as Adapter,
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
+    Google({
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
     }),
     /**
      * ...add more providers here.
