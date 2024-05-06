@@ -2,6 +2,27 @@
 
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
 
+## How to run locally
+
+If you don't have it, install pnpm through npm:
+
+```bash
+npm i pnpm -g
+```
+
+Then, begin by creating the database/pushing the schema with
+
+```bash
+# run this only when db schema needs updating
+pnpm db:push
+```
+
+And, every time you need, you can run the app locally with:
+
+```bash
+pnpm dev
+```
+
 ## What's next? How do I make an app with this?
 
 We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
