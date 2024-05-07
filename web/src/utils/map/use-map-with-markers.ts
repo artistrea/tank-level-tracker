@@ -6,10 +6,7 @@ import {
   useRef,
 } from "react";
 
-import { type MapBrowserEvent, Feature, Map, View } from "ol";
-import TileLayer from "ol/layer/Tile";
-import OSM from "ol/source/OSM";
-import VectorLayer from "ol/layer/Vector";
+import { type MapBrowserEvent, Feature } from "ol";
 import "ol/ol.css";
 import { fromLonLat } from "ol/proj";
 import { Point } from "ol/geom";
@@ -19,41 +16,28 @@ import Text from "ol/style/Text";
 import VectorSource from "ol/source/Vector";
 import Fill from "ol/style/Fill";
 
-function createStuff() {
-  if (typeof window === "undefined")
-    return { markersLayer: undefined, map: undefined };
+import Stroke from "ol/style/Stroke";
+import { buildMapLayers } from "./build-map-layers";
 
-  const osmLayer = new TileLayer({
-    preload: Infinity,
-    source: new OSM(),
-  });
-  const markersLayer = new VectorLayer();
+const TYPE_TO_COLOR = {
+  danger: "rgb(255,20,20)",
+  warning: "#facc15",
+  normal: "#4ade80",
+} as const;
+const prio = { danger: 2, warning: 1, normal: 0 };
 
-  const map = new Map({
-    layers: [osmLayer, markersLayer],
-    view: new View({
-      center: fromLonLat([-47.862, -15.7657]),
-      zoom: 14,
-      maxZoom: 20,
-      minZoom: 12,
-      projection: "EPSG:3857",
-    }),
-  });
-
-  // [TODO]: Use better tyling for local
-
-  // const mapTiler = "sla"
-  // map.addLayer(mapTiler);
-
-  return { markersLayer, map };
-}
-
-const { map, markersLayer } = createStuff();
+const { map, markersLayer } = buildMapLayers();
 
 export function useMapWithMarkers(
   markers:
     | undefined
-    | { lat: number; long: number; name: string; id: string }[],
+    | {
+        lat: number;
+        long: number;
+        name: string;
+        id: string;
+        type: "danger" | "warning" | "normal";
+      }[],
   mapRef: RefObject<HTMLDivElement>,
   selectedMarkerId: string | undefined,
   setSelectedMarkerId: Dispatch<SetStateAction<string | undefined>>,
@@ -65,10 +49,10 @@ export function useMapWithMarkers(
     const onClickCallback = (event: MapBrowserEvent<any>) => {
       map?.forEachFeatureAtPixel(event.pixel, function (feature, _layer) {
         const id = feature.getId();
-        if (typeof id === "string") setSelectedMarkerId(id);
+        if (typeof id === "string") {
+          setSelectedMarkerId((prevId) => (prevId === id ? undefined : id));
+        }
       });
-      console.log("opa");
-
       event.preventDefault();
     };
 
@@ -76,7 +60,10 @@ export function useMapWithMarkers(
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onPointerMoveCallback = (event: MapBrowserEvent<any>) => {
-      const hit = map?.forEachFeatureAtPixel(event.pixel, () => true);
+      const hit = map?.forEachFeatureAtPixel(
+        event.pixel,
+        (t) => t.get("isMarker") as boolean | undefined,
+      );
       if (hit) {
         map && (map.getTargetElement().style.cursor = "pointer");
       } else {
@@ -96,20 +83,28 @@ export function useMapWithMarkers(
       new VectorSource({
         features:
           markers?.map((p) => {
-            const f = new Feature({
+            const feature = new Feature({
               geometry: new Point(fromLonLat([p.lat, p.long])),
             });
 
-            f.setId(p.id);
+            feature.setId(p.id);
 
-            f.setStyle(
+            feature.setStyle(
               new Style({
+                zIndex: 99 + prio[p.type],
                 image: new Icon({
                   src: "/map-pin.svg",
                   crossOrigin: "anonymous",
-                  anchor: [0.5, 1],
+                  anchor: [0.5, 1.2],
                   height: selectedMarkerId === p.id ? 48 : undefined,
-                  color: selectedMarkerId === p.id ? "red" : undefined,
+                  color: TYPE_TO_COLOR[p.type],
+                }),
+                stroke: new Stroke({
+                  color: "#000",
+                  width: 4,
+                }),
+                fill: new Fill({
+                  color: "#000",
                 }),
                 text: new Text({
                   text: p.name,
@@ -121,11 +116,9 @@ export function useMapWithMarkers(
               }),
             );
 
-            f.addEventListener("onclick", () => {
-              alert("a");
-            });
+            feature.set("isMarker", true);
 
-            return f;
+            return feature;
           }) ?? [],
       }),
     );

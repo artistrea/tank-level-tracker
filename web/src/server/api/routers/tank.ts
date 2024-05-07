@@ -28,7 +28,7 @@ export const tankRouter = createTRPCRouter({
         id: "id2",
         name: "Tanque 2",
         lat: -47.868,
-        long: -15.7659,
+        long: -15.7649,
         maximumVolume: 30,
         dangerZone: 15,
         alertZone: 20,
