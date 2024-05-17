@@ -1,0 +1,1 @@
+int opa(int a);
