@@ -21,7 +21,7 @@ void setup_gateway_lora() {
     while(1);
   }
 
-  LoRa_txMode();
+  LoRa_gatewayTxMode();
 
   // register the receive callback
   LoRa.onReceive(onReceive);
@@ -29,7 +29,7 @@ void setup_gateway_lora() {
   LoRa_sendGatewayPollBroadcast();
   
   // put the radio into receive mode
-  LoRa_rxMode();
+  LoRa_gatewayRxMode();
 }
 
 void setup() {
@@ -77,10 +77,10 @@ void loop() {
     power_all_enable();
     Serial.println("[Gateway]: waking up");
 
-    LoRa_txMode();
+    LoRa_gatewayTxMode();
     
     LoRa_sendGatewayPollBroadcast();
 
-    LoRa_rxMode();
+    LoRa_gatewayRxMode();
   }
 }

@@ -8,30 +8,28 @@
 // Node    - Sends messages with disableInvertIQ()
 //         - Receives messages with enableInvertIQ()
 
-void LoRa_rxMode(){
-#if OWN_ID == 0
+void LoRa_gatewayRxMode(){
 // Gateway - Receives messages with disableInvertIQ()
   LoRa.disableInvertIQ();               // normal mode
   LoRa.receive();                       // set receive mode
-#else
+}
+void LoRa_nodeRxMode(){
 // Node    - Receives messages with enableInvertIQ()
   LoRa.enableInvertIQ();                // active invert I and Q signals
   LoRa.receive();                       // set receive mode
-  // to not let nodes talk at same time
-  LoRa.onCadDone(onCADdone);
-#endif
 }
 
-void LoRa_txMode(){
-#if OWN_ID == 0
+void LoRa_gatewayTxMode(){
 // Gateway - Sends messages with enableInvertIQ()
   LoRa.idle();                          // set standby mode
   LoRa.enableInvertIQ();                // active invert I and Q signals
-#else
+}
+void LoRa_nodeTxMode(){
 // Node    - Sends messages with disableInvertIQ()
   LoRa.idle();                          // set standby mode
   LoRa.disableInvertIQ();               // normal mode
-#endif
+  // to not let nodes talk at same time
+  LoRa.onCadDone(onCADdone);
 }
 
 // returns 0 on failure, 1 on success
@@ -97,11 +95,6 @@ LoRaMessage& LoRa_receiveMessage(int packetSize) {
 
   return msg;
 }
-
-#ifndef BROADCAST_PREAMBLE_LENGTH
-// é pra ser mei aleatório mesmo:
-#define BROADCAST_PREAMBLE_LENGTH 30
-#endif
 
 void LoRa_sendGatewayPollBroadcast() {
   LoRa.setPreambleLength(BROADCAST_PREAMBLE_LENGTH);

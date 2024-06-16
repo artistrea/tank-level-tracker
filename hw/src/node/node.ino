@@ -70,7 +70,7 @@ void loop() {
     // set next state before rx mode to prevent race condition if broadcast is immidiately received
     currentState = SHOULD_WAIT_FOR_BROADCAST;
     // put the radio into receive mode
-    LoRa_rxMode();
+    LoRa_nodeRxMode();
     LoRa_prepareForGatewayPollBroadcast();
     break;
 
@@ -93,7 +93,7 @@ void loop() {
 
   case SHOULD_TRANSMIT:
     Serial.println("[Node]: SHOULD_TRANSMIT");
-    LoRa_txMode();
+    LoRa_nodeTxMode();
     LoRa_sendNodeMeasurement(measurementToSend);
     currentState = SHOULD_SLEEP;
     break;

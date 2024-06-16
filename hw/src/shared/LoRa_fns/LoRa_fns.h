@@ -1,7 +1,12 @@
 
+#ifndef BROADCAST_PREAMBLE_LENGTH
+// é pra ser mei aleatório mesmo:
+#define BROADCAST_PREAMBLE_LENGTH 30
+#endif
+
 #ifndef MINIMUM_TIME_BETWEEN_POLLING_IN_MS
 // 50min = 1.000*60*50 ms = 3.000.000 ms
-#define MINIMUM_TIME_BETWEEN_POLLING_IN_MS 10000
+#define MINIMUM_TIME_BETWEEN_POLLING_IN_MS 2000
 #endif
 
 // caso não dê pra linkar isso daqui, copiar e colar depois
@@ -25,9 +30,13 @@
 //         - Receives messages with enableInvertIQ()
 
 
-void LoRa_rxMode();
+void LoRa_gatewayRxMode();
 
-void LoRa_txMode();
+void LoRa_nodeRxMode();
+
+void LoRa_gatewayTxMode();
+
+void LoRa_nodeTxMode();
 
 
 // can have 255 bytes per message|packet at most
