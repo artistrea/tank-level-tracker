@@ -1,3 +1,9 @@
+
+#ifndef MINIMUM_TIME_BETWEEN_POLLING_IN_MS
+// 50min = 1.000*60*50 ms = 3.000.000 ms
+#define MINIMUM_TIME_BETWEEN_POLLING_IN_MS 10000
+#endif
+
 // caso não dê pra linkar isso daqui, copiar e colar depois
 
 #include <stdint.h>

@@ -1,8 +1,4 @@
 
-#ifndef MINIMUM_TIME_BETWEEN_POLLING_IN_MS
-// 50min = 1000*60*50 ms = 3000000 ms
-#define MINIMUM_TIME_BETWEEN_POLLING_IN_MS 3000000
-#endif
 #ifndef OWN_ID
 // gateway id is 0 for ease
 #define OWN_ID 0
@@ -15,9 +11,16 @@
 #include <Arduino.h>
 #include <LoRa.h>
 #include <LoRa_fns.h>
-#include <Adafruit_SleepyDog.h>
+#include <longSleep.h>
+// #include <Adafruit_SleepyDog.h>
 
 void setup_gateway_lora() {
+  if (!LoRa.begin(915E6)) {
+    // deu bem ruim
+    Serial.println("[Node]: deu bem ruim LoRa!");
+    while(1);
+  }
+
   LoRa_txMode();
 
   // register the receive callback
@@ -49,7 +52,9 @@ void onReceive(int packetSize) {
   // enqueue({msg, can_downstream_at});
   // queue consumer sends to server with esp32 and may enqueue downstream notifications
   Serial.println("[Gateway]: received message:");
-  Serial.print("[Gateway]: received message:");
+  Serial.print("[Gateway]: from - ");
+  Serial.println((uint32_t)msg.senderId);
+  Serial.print("[Gateway]: data - ");
   Serial.println((uint32_t)msg.data[0]);
 
 // since using single lora without downstream notifications:
@@ -62,14 +67,20 @@ void loop() {
   unsigned long now = millis();
   unsigned long timeElapsedSinceLastTransmissionReceived = now - lastTransmissionAt;
 
-  if (timeElapsedSinceLastTransmissionReceived > 1) {
+  if (timeElapsedSinceLastTransmissionReceived > 1000) {
     // probably no one is transmitting anymore
     LoRa.sleep();
     Serial.println("[Gateway]: finished receiving from all. Sleeping now zzz");
-
+    Serial.flush();
     power_all_disable();
-    Watchdog.sleep(MINIMUM_TIME_BETWEEN_POLLING_IN_MS);
+    longSleep(MINIMUM_TIME_BETWEEN_POLLING_IN_MS);
     power_all_enable();
     Serial.println("[Gateway]: waking up");
+
+    LoRa_txMode();
+    
+    LoRa_sendGatewayPollBroadcast();
+
+    LoRa_rxMode();
   }
 }

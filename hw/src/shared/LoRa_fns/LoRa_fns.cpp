@@ -110,6 +110,8 @@ void LoRa_sendGatewayPollBroadcast() {
 
   LoRa_sendPacket(packet, sizeof(packet));
 
+  Serial.println("sent broadcast");
+
   // 8 is the default
   LoRa.setPreambleLength(8);
 }

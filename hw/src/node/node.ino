@@ -1,7 +1,3 @@
-#ifndef MINIMUM_TIME_BETWEEN_POLLING_IN_MS
-// 50min = 1.000*60*50 ms = 3.000.000 ms
-#define MINIMUM_TIME_BETWEEN_POLLING_IN_MS 3000000
-#endif
 #ifndef OWN_ID
 // gateway id is 0 for ease
 #define OWN_ID 1
@@ -13,7 +9,7 @@
 #include <avr/sleep.h>
 #include <Arduino.h>
 #include <LoRa.h>
-#include <Adafruit_SleepyDog.h>
+#include <longSleep.h>
 #include <LoRa_fns.h>
 #include "getMeasurement.h"
 
@@ -56,12 +52,14 @@ void loop() {
   switch (currentState) {
   case SHOULD_SLEEP:
     Serial.println("[Node]: gonna sleep zzz");
+    Serial.flush();
     // SETUP_LOW_POWER
     LoRa.sleep();
     ADCSRA &= ~(1 << ADEN);
-    power_all_disable();
-    Watchdog.sleep(MINIMUM_TIME_BETWEEN_POLLING_IN_MS);
-    power_all_enable();
+    // power_all_disable();
+    longSleep(MINIMUM_TIME_BETWEEN_POLLING_IN_MS);
+    // power_all_enable();
+    // delay(1000);
     Serial.println("[Node]: stop sleep");
     currentState = SHOULD_PREPARE_FOR_BROADCAST;
     break;
@@ -71,16 +69,20 @@ void loop() {
     ADCSRA |= (1 << ADEN);
     // set next state before rx mode to prevent race condition if broadcast is immidiately received
     currentState = SHOULD_WAIT_FOR_BROADCAST;
-    LoRa_prepareForGatewayPollBroadcast();
     // put the radio into receive mode
     LoRa_rxMode();
+    LoRa_prepareForGatewayPollBroadcast();
     break;
 
   case SHOULD_WAIT_FOR_BROADCAST:
     if (first_wait) {
       first_wait = false;
-      Serial.println("[Node]: SHOULD_PREPARE_FOR_BROADCAST");
+      Serial.println("[Node]: SHOULD_WAIT_FOR_BROADCAST");
     }
+    delay(1000);
+    LoRa_txMode();
+    LoRa_sendNodeMeasurement(222UL);
+
     // just wait
     break;
 
@@ -94,7 +96,7 @@ void loop() {
 
   case SHOULD_TRANSMIT:
     Serial.println("[Node]: SHOULD_TRANSMIT");
-    LoRa_rxMode();
+    LoRa_txMode();
     LoRa_sendNodeMeasurement(measurementToSend);
     currentState = SHOULD_SLEEP;
     break;
@@ -107,6 +109,7 @@ void loop() {
 void onReceive(int packetSize) {
   // currentState is always waiting for broadcast
   // if downstream messages can be received, check currentState
+  Serial.println("[Node]: Received broadcast");
   LoRa_prepareForGatewayPollBroadcastCleanup();
   currentState = SHOULD_TAKE_MEASUREMENT;
 }
