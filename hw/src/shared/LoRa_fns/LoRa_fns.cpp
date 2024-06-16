@@ -9,27 +9,27 @@
 //         - Receives messages with enableInvertIQ()
 
 void LoRa_gatewayRxMode(){
-// Gateway - Receives messages with disableInvertIQ()
-  LoRa.disableInvertIQ();               // normal mode
-  LoRa.receive();                       // set receive mode
-}
-void LoRa_nodeRxMode(){
 // Node    - Receives messages with enableInvertIQ()
   LoRa.enableInvertIQ();                // active invert I and Q signals
   LoRa.receive();                       // set receive mode
 }
+void LoRa_nodeRxMode(){
+// Gateway - Receives messages with disableInvertIQ()
+  LoRa.disableInvertIQ();               // normal mode
+  LoRa.receive();                       // set receive mode
+}
 
 void LoRa_gatewayTxMode(){
-// Gateway - Sends messages with enableInvertIQ()
-  LoRa.idle();                          // set standby mode
-  LoRa.enableInvertIQ();                // active invert I and Q signals
-}
-void LoRa_nodeTxMode(){
 // Node    - Sends messages with disableInvertIQ()
   LoRa.idle();                          // set standby mode
   LoRa.disableInvertIQ();               // normal mode
   // to not let nodes talk at same time
   LoRa.onCadDone(onCADdone);
+}
+void LoRa_nodeTxMode(){
+// Gateway - Sends messages with enableInvertIQ()
+  LoRa.idle();                          // set standby mode
+  LoRa.enableInvertIQ();                // active invert I and Q signals
 }
 
 // returns 0 on failure, 1 on success
@@ -59,13 +59,10 @@ bool channelBusy = false;
 
 // LoRa.begin() has to have been called
 // blocks while has not sent message
-void LoRa_sendNodeMeasurement(uint32_t measurement) {
+void LoRa_sendNodeMeasurement(byte fromId, uint32_t measurement) {
   struct LoRaMessage msg;
-
-  msg.data[0] = *(byte*)&measurement;
-  msg.data[1] = *((byte*)&measurement + 1);
-  msg.data[2] = *((byte*)&measurement + 2);
-  msg.data[3] = *((byte*)&measurement + 3);
+  msg.senderId = fromId;
+  memcpy(msg.data, &measurement, sizeof(measurement));
 
   LoRa_sendMessage(msg);
 }
@@ -91,7 +88,9 @@ void onCADdone(boolean detected) {
 
 LoRaMessage& LoRa_receiveMessage(int packetSize) {  
   LoRaMessage msg;
-  LoRa.readBytes((byte*)&msg, sizeof(msg));
+  byte* buffer;
+  LoRa.readBytes(buffer, sizeof(msg));
+  memcpy(&msg, buffer, sizeof(msg));
 
   return msg;
 }

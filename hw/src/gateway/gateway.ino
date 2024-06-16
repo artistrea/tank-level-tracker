@@ -14,23 +14,13 @@
 #include <longSleep.h>
 // #include <Adafruit_SleepyDog.h>
 
-void setup_gateway_lora() {
-  if (!LoRa.begin(915E6)) {
-    // deu bem ruim
-    Serial.println("[Node]: deu bem ruim LoRa!");
-    while(1);
-  }
+typedef enum STATE {
+  SHOULD_SLEEP,
+  SHOULD_WAIT_FOR_ANSWERS,
+  SHOULD_BROADCAST,
+} STATE;
 
-  LoRa_gatewayTxMode();
-
-  // register the receive callback
-  LoRa.onReceive(onReceive);
-
-  LoRa_sendGatewayPollBroadcast();
-  
-  // put the radio into receive mode
-  LoRa_gatewayRxMode();
-}
+STATE currentState = SHOULD_BROADCAST;
 
 void setup() {
   Serial.begin(9600);
@@ -38,7 +28,18 @@ void setup() {
   ADCSRA = 0;
   // probably should disable more peripherals
 
-  setup_gateway_lora();
+
+  if (!LoRa.begin(915E6)) {
+    // deu bem ruim
+    Serial.println("[Gateway]: deu bem ruim LoRa!");
+    while(1);
+  }
+
+  // register the receive callback
+  LoRa.onReceive(onReceive);
+
+  currentState = SHOULD_BROADCAST;
+ 
   Serial.println("[Gateway]: finished setup");
 }
 
@@ -51,36 +52,63 @@ void onReceive(int packetSize) {
   // can_downstream_at = cur_time + 1_000;
   // enqueue({msg, can_downstream_at});
   // queue consumer sends to server with esp32 and may enqueue downstream notifications
+  uint32_t* measurement = (uint32_t*)msg.data;
   Serial.println("[Gateway]: received message:");
   Serial.print("[Gateway]: from - ");
-  Serial.println((uint32_t)msg.senderId);
-  Serial.print("[Gateway]: data - ");
-  Serial.println((uint32_t)msg.data[0]);
+  Serial.println(msg.senderId);
+  Serial.print("[Gateway]: measurement - ");
+  Serial.println(*measurement);
 
 // since using single lora without downstream notifications:
   // esp32.send(stuff)
   lastTransmissionAt = millis();
 }
 
+
+
 void loop() {
-  // millis overflows in about every 50 days but is not relevant
-  unsigned long now = millis();
-  unsigned long timeElapsedSinceLastTransmissionReceived = now - lastTransmissionAt;
+  Serial.println("[Gateway]: loop");
+  switch (currentState) {
+    case SHOULD_WAIT_FOR_ANSWERS: {
+      Serial.println("[Gateway]: SHOULD_WAIT_FOR_ANSWERS");
+      // TODO: ver pq q isso n tá funfando:
+      // millis overflows in about every 50 days but is not relevant
+      uint32_t now = 10;
+      uint32_t timeElapsedSinceLastTransmissionReceived = now - lastTransmissionAt;
 
-  if (timeElapsedSinceLastTransmissionReceived > 1000) {
-    // probably no one is transmitting anymore
-    LoRa.sleep();
-    Serial.println("[Gateway]: finished receiving from all. Sleeping now zzz");
-    Serial.flush();
-    power_all_disable();
-    longSleep(MINIMUM_TIME_BETWEEN_POLLING_IN_MS);
-    power_all_enable();
-    Serial.println("[Gateway]: waking up");
+      if (timeElapsedSinceLastTransmissionReceived > 100) {
+        currentState = SHOULD_SLEEP;
+      }
+      delay(100);
+      currentState = SHOULD_SLEEP;
+      break;
+    }
+    case SHOULD_BROADCAST:
+      Serial.println("[Gateway]: SHOULD_BROAD");
+      LoRa_gatewayTxMode();
 
-    LoRa_gatewayTxMode();
-    
-    LoRa_sendGatewayPollBroadcast();
+      LoRa_sendGatewayPollBroadcast();
 
-    LoRa_gatewayRxMode();
+      // put the radio into receive mode
+      LoRa_gatewayRxMode();
+      currentState = SHOULD_WAIT_FOR_ANSWERS;
+      break;
+
+    case SHOULD_SLEEP:
+      Serial.println("[Gateway]: SHOULD_ZZZZ");
+      LoRa.sleep();
+      Serial.println("[Gateway]: finished receiving from all. Sleeping now zzz");
+      Serial.flush();
+      power_all_disable();
+      longSleep(MINIMUM_TIME_BETWEEN_POLLING_IN_MS);
+      power_all_enable();
+      Serial.println("[Gateway]: waking up");
+      currentState = SHOULD_BROADCAST;
+      break;
+
+    default:
+      Serial.println("[Gateway]: SOMETHING GONE WRONG");
+      break;
   }
+  Serial.flush();
 }

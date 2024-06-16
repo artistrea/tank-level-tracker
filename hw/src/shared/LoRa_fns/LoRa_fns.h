@@ -18,12 +18,6 @@
 #ifndef LORA_FNS_H
 #define LORA_FNS_H
 
-#ifndef OWN_ID
-// gateway id is 0 for ease
-#define OWN_ID 0
-#endif
-
-
 // Gateway - Sends messages with enableInvertIQ()
 //         - Receives messages with disableInvertIQ()
 // Node    - Sends messages with disableInvertIQ()
@@ -43,7 +37,7 @@ void LoRa_nodeTxMode();
 struct LoRaMessage {
   byte version = 0;
   byte destination = 0;   // gateway by default
-  byte senderId = OWN_ID;
+  byte senderId;
   byte data[4];           // may increase based on other stuff
 };
 
@@ -54,7 +48,7 @@ void LoRa_sendMessage(LoRaMessage &msg);
 int LoRa_sendPacket(byte* buffer, size_t length);
 
 
-void LoRa_sendNodeMeasurement(uint32_t measurement);
+void LoRa_sendNodeMeasurement(byte fromId, uint32_t measurement);
 
 void onCADdone(boolean detected);
 

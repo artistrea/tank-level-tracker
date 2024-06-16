@@ -56,9 +56,9 @@ void loop() {
     // SETUP_LOW_POWER
     LoRa.sleep();
     ADCSRA &= ~(1 << ADEN);
-    // power_all_disable();
+    power_all_disable();
     longSleep(MINIMUM_TIME_BETWEEN_POLLING_IN_MS);
-    // power_all_enable();
+    power_all_enable();
     // delay(1000);
     Serial.println("[Node]: stop sleep");
     currentState = SHOULD_PREPARE_FOR_BROADCAST;
@@ -94,7 +94,8 @@ void loop() {
   case SHOULD_TRANSMIT:
     Serial.println("[Node]: SHOULD_TRANSMIT");
     LoRa_nodeTxMode();
-    LoRa_sendNodeMeasurement(measurementToSend);
+    LoRa_sendNodeMeasurement(OWN_ID, measurementToSend);
+
     currentState = SHOULD_SLEEP;
     break;
 
