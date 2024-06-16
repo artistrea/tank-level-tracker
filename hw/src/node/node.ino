@@ -79,9 +79,6 @@ void loop() {
       first_wait = false;
       Serial.println("[Node]: SHOULD_WAIT_FOR_BROADCAST");
     }
-    delay(1000);
-    LoRa_txMode();
-    LoRa_sendNodeMeasurement(222UL);
 
     // just wait
     break;
