@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "Lora.h"
+#include <LoRa.h>
 #include <Arduino.h>
 #include "LoRa_fns.h"
 

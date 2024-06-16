@@ -8,11 +8,13 @@
 #define OWN_ID 0
 #endif
 
-// lora and sleepyDog
+// lora and sleepyDog1
+#include <stdint.h>
+#include <avr/power.h>
 #include <avr/sleep.h>
 #include <Arduino.h>
 #include <LoRa.h>
-#include "../LoRa_fns.h"
+#include <LoRa_fns.h>
 #include <Adafruit_SleepyDog.h>
 
 void setup_gateway_lora() {
@@ -28,11 +30,13 @@ void setup_gateway_lora() {
 }
 
 void setup() {
+  Serial.begin(9600);
   // disable ADC with its clock too
   ADCSRA = 0;
   // probably should disable more peripherals
 
   setup_gateway_lora();
+  Serial.println("[Gateway]: finished setup");
 }
 
 unsigned long lastTransmissionAt;
@@ -44,6 +48,9 @@ void onReceive(int packetSize) {
   // can_downstream_at = cur_time + 1_000;
   // enqueue({msg, can_downstream_at});
   // queue consumer sends to server with esp32 and may enqueue downstream notifications
+  Serial.println("[Gateway]: received message:");
+  Serial.print("[Gateway]: received message:");
+  Serial.println((uint32_t)msg.data[0]);
 
 // since using single lora without downstream notifications:
   // esp32.send(stuff)
@@ -58,9 +65,11 @@ void loop() {
   if (timeElapsedSinceLastTransmissionReceived > 1) {
     // probably no one is transmitting anymore
     LoRa.sleep();
-    
+    Serial.println("[Gateway]: finished receiving from all. Sleeping now zzz");
+
     power_all_disable();
     Watchdog.sleep(MINIMUM_TIME_BETWEEN_POLLING_IN_MS);
     power_all_enable();
+    Serial.println("[Gateway]: waking up");
   }
 }

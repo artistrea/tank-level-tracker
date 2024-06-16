@@ -1,7 +1,7 @@
 // caso não dê pra linkar isso daqui, copiar e colar depois
 
 #include <stdint.h>
-#include "Lora.h"
+#include <LoRa.h>
 #include <Arduino.h>
 
 #ifndef LORA_FNS_H
@@ -18,6 +18,7 @@
 // Node    - Sends messages with disableInvertIQ()
 //         - Receives messages with enableInvertIQ()
 
+
 void LoRa_rxMode();
 
 void LoRa_txMode();
@@ -30,6 +31,8 @@ struct LoRaMessage {
   byte senderId = OWN_ID;
   byte data[4];           // may increase based on other stuff
 };
+
+void LoRa_sendMessage(LoRaMessage &msg);
 
 // returns 0 on failure, 1 on success
 // https://github.com/sandeepmistry/arduino-LoRa/blob/master/API.md#sending-data
