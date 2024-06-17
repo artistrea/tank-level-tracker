@@ -1,8 +1,3 @@
-#ifndef OWN_ID
-// gateway id is 0 for ease
-#define OWN_ID 1
-#endif
-
 // lora and sleepyDog
 #include <stdint.h>
 #include <avr/power.h>
@@ -41,7 +36,8 @@ void setup() {
  
   currentState = SHOULD_PREPARE_FOR_BROADCAST;
 
-  Serial.println("[Node]: finished setup");
+  Serial.print("[Node]: finished setup of node ");
+  Serial.println(OWN_ID);
 }
 
 
