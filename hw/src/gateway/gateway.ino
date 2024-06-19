@@ -71,7 +71,6 @@ void loop() {
   switch (currentState) {
     case SHOULD_WAIT_FOR_ANSWERS: {
       Serial.println("[Gateway]: SHOULD_WAIT_FOR_ANSWERS");
-      // TODO: ver pq q isso n tá funfando:
       // millis overflows in about every 50 days but is not relevant
       uint32_t now = 10;
       uint32_t timeElapsedSinceLastTransmissionReceived = now - lastTransmissionAt;
@@ -80,9 +79,8 @@ void loop() {
         currentState = SHOULD_SLEEP;
       }
       delay(100);
-      currentState = SHOULD_SLEEP;
       break;
-    }
+      }
     case SHOULD_BROADCAST:
       Serial.println("[Gateway]: SHOULD_BROAD");
       LoRa_gatewayTxMode();
