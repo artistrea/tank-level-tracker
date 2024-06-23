@@ -89,6 +89,7 @@ void loop() {
       // put the radio into receive mode
       LoRa_gatewayRxMode();
       currentState = SHOULD_WAIT_FOR_ANSWERS;
+      lastTransmissionAt = millis();
       break;
 
     case SHOULD_SLEEP:
