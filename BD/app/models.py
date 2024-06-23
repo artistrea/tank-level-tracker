@@ -14,17 +14,20 @@ def init_db():
         db.executescript('''
         CREATE TABLE IF NOT EXISTS tanks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            top_to_liquid_distance_in_cm REAL NOT NULL,
+            maximum_volume REAL NOT NULL,
+            name TEXT NOT NULL,
+            description TEXT NOT NULL,
+            volume_danger_zone REAL NOT NULL,
+            volume_alert_zone REAL NOT NULL,
             tank_base_area REAL NOT NULL,
-            volume REAL NOT NULL,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL
         );
+                         
         CREATE TABLE IF NOT EXISTS samples (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             tank_id INTEGER NOT NULL,
             top_to_liquid_distance_in_cm REAL NOT NULL,
-            tank_base_area REAL NOT NULL,
-            volume REAL NOT NULL,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
             FOREIGN KEY(tank_id) REFERENCES tanks(id)
         );
