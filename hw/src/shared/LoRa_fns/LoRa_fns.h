@@ -4,10 +4,6 @@
 #define BROADCAST_PREAMBLE_LENGTH 30
 #endif
 
-#ifndef MINIMUM_TIME_BETWEEN_POLLING_IN_MS
-// 50min = 1.000*60*50 ms = 3.000.000 ms
-#define MINIMUM_TIME_BETWEEN_POLLING_IN_MS 10000
-#endif
 
 // caso não dê pra linkar isso daqui, copiar e colar depois
 
@@ -17,6 +13,8 @@
 
 #ifndef LORA_FNS_H
 #define LORA_FNS_H
+// 50min = 1.000*60*50 ms = 3.000.000 ms
+#define MINIMUM_TIME_BETWEEN_POLLING_IN_MS 10000
 
 // Gateway - Sends messages with enableInvertIQ()
 //         - Receives messages with disableInvertIQ()

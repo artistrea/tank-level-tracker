@@ -67,12 +67,11 @@ void onReceive(int packetSize) {
 
 
 void loop() {
-  Serial.println("[Gateway]: loop");
   switch (currentState) {
     case SHOULD_WAIT_FOR_ANSWERS: {
       Serial.println("[Gateway]: SHOULD_WAIT_FOR_ANSWERS");
       // millis overflows in about every 50 days but is not relevant
-      uint32_t now = 10;
+      uint32_t now = millis();
       uint32_t timeElapsedSinceLastTransmissionReceived = now - lastTransmissionAt;
 
       if (timeElapsedSinceLastTransmissionReceived > 100) {

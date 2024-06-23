@@ -5,7 +5,7 @@ Use [Arduino CLI](https://arduino.github.io/arduino-cli/1.0/installation/).
 Compile referenciando o código compartilhado entre gateway e nó:
 
 ```bash
-arduino-cli compile --build-property build.extra_flags=-DOWN_ID=2 --libraries ./src/shared/ --fqbn arduino:avr:uno ./src/node/node.ino
+arduino-cli compile --build-property build.extra_flags=-DOWN_ID=10 --libraries ./src/shared/ --fqbn arduino:avr:uno ./src/node/node.ino
 ```
 
 ```bash
