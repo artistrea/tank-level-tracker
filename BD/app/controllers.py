@@ -1,6 +1,24 @@
+from .exceptions import HTTPException, UnprocessableEntityException, InternalServerErrorException
 from flask import Blueprint, request, jsonify
 from .models import query_db, execute_db
-from schema import Schema, And, Use, Optional, SchemaError
+from .services import auth_service
+from schema import Schema, And, Use, SchemaError
+
+bp = Blueprint('main', __name__)
+
+def http_error_handler(exception: HTTPException):
+    return exception.get_response()
+
+bp.register_error_handler(HTTPException, http_error_handler)
+
+def internal_server_error_handler(error: Exception):
+    print("#############################")
+    print(error)
+    print("#############################")
+
+    return InternalServerErrorException().get_response()
+
+bp.register_error_handler(Exception, internal_server_error_handler)
 
 bp = Blueprint('main', __name__)
 
@@ -50,6 +68,7 @@ class TanksController:
 
     @bp.route("/tanks", methods = ["GET"])
     def getAll():
+        auth_service.authorize_request(request, "read", "tank")
         tanks = query_db("SELECT * FROM tanks")
 
         return jsonify([dict(row) for row in tanks]), 200
@@ -58,6 +77,7 @@ class TanksController:
 
     @bp.route("/tanks/<int:id>", methods = ["GET"])
     def getById(id):
+        auth_service.authorize_request(request, "read", "tank")
         tank = query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
 
         if tank:
@@ -69,6 +89,8 @@ class TanksController:
 
     @bp.route("/tanks", methods = ["POST"])
     def create_tank():
+        created_tank = query_db("SELECT * FROM tanks WHERE id = ?", [tank_id], one=True)
+        auth_service.authorize_request(request, "create", "tank")
         data = request.json
 
         if not check(create_tank_schema, data):
@@ -83,6 +105,7 @@ class TanksController:
 
     @bp.route("/tanks/<int:id>", methods = ["PUT"])
     def update_tank(id):
+        auth_service.authorize_request(request, "update", "tank")
         data = request.json
 
         if not check(create_tank_schema, data):
@@ -102,6 +125,7 @@ class TanksController:
 
     @bp.route("/tanks/<int:id>", methods = ["DELETE"])
     def delete_tank(id):
+        auth_service.authorize_request(request, "delete", "tank")
         tank = query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
 
         if not tank:
@@ -118,6 +142,7 @@ class TanksController:
 class SamplesController:
     @bp.route("/samples", methods = ["POST"])
     def create_sample():
+        auth_service.authorize_request(request, "create", "sample")
         data = request.json
 
         if not check(create_samples_schema, data):
@@ -132,6 +157,7 @@ class SamplesController:
 
     @bp.route("/samples/<int:id>", methods = ["DELETE"])
     def delete_sample(id):
+        auth_service.authorize_request(request, "delete", "sample")
         sample = query_db("SELECT * FROM samples WHERE id = ?", [id], one=True)
 
         if not sample:
@@ -140,3 +166,40 @@ class SamplesController:
         execute_db("DELETE FROM samples WHERE id = ?", [id])
 
         return jsonify({"message": "Sample data deleted successfully!"}), 200
+
+class AuthController:
+    @bp.route("/auth/login", methods=["POST"])
+    def login():
+        data = request.json
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            raise UnprocessableEntityException("Login needs 'email' and 'password'!")
+
+        response_json = auth_service.login(email, password)
+
+        return jsonify(dict(response_json)), 200
+
+    @bp.route("/auth/create-user", methods=["POST"])
+    def create_user():
+        # QUANDO A SEED FUNFAR A GENTE TIRA ISSAQUI
+        # auth_service.authorize_request(request, "create", "user")
+        data = request.json
+        email = data.get('email')
+        password = data.get('password')
+        name = data.get('name')
+
+        if not email or not name or not password:
+            raise UnprocessableEntityException("Required 'email', 'name' and 'password'!")
+
+        created_user_id = auth_service.create_user(email, password, name)
+
+        return jsonify(dict({"id": created_user_id})), 201
+        
+    @bp.route("/auth/me", methods=["GET"])
+    def me():
+        session_params = auth_service.get_session_from_req(request)
+        user = auth_service.get_current_user(session_params["session_id"], session_params["user_id"])
+
+        return jsonify(dict(user)), 201

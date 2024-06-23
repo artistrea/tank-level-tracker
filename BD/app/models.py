@@ -1,5 +1,6 @@
+import typing
 import sqlite3
-from flask import g, current_app
+from flask import g
 
 def get_db():
     if 'db' not in g:
@@ -31,6 +32,24 @@ def init_db():
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
             FOREIGN KEY(tank_id) REFERENCES tanks(id)
         );
+        -- separate credentials and user to prevent leaks
+        CREATE TABLE IF NOT EXISTS credentials (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            hashed_password TEXT UNIQUE NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            credential_id INTEGER NOT NULL,
+            FOREIGN KEY(credential_id) REFERENCES credentials(id)
+        );
+        CREATE TABLE IF NOT EXISTS sessions (
+            id TEXT PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            expires_at DATETIME DEFAULT (datetime('now', '+1 days')),
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        );
         ''')
     print("Database initialized!")
 
@@ -43,10 +62,18 @@ def query_db(query, args=(), one=False):
     cursor.close()
     return (result_value[0] if result_value else None) if one else result_value
 
-def execute_db(query, args=()):
+def execute_db(query, args=(), returning: typing.Literal["one", "many", False]=False):
     db = get_db()
     cursor = db.execute(query, args)
+
+    if returning == "one":
+        result = cursor.fetchall()
+        result = result[0] if result else None
+    elif returning == "many":
+        result = cursor.fetchall()
+    else:
+        result = cursor.lastrowid
+
     db.commit()
-    id = cursor.lastrowid
     cursor.close()
-    return id
+    return result
