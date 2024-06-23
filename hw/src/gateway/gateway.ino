@@ -1,69 +1,112 @@
 
-#include <avr/sleep.h>
-#include <avr/power.h>
-// lora and sleepyDog
-#include <LoRa.h>
-#include <Adafruit_SleepyDog.h>
-
-#ifndef MINIMUM_TIME_BETWEEN_CALLS_IN_MS
-// 50min = 1000*60*50 ms = 3000000 ms
-#define MINIMUM_TIME_BETWEEN_CALLS_IN_MS 3000000
+#ifndef OWN_ID
+// gateway id is 0 for ease
+#define OWN_ID 0
 #endif
 
-void setup_low_power() {
-  // disable ADC
-  ADCSRA = 0;  
+// lora and sleepyDog1
+#include <stdint.h>
+#include <avr/power.h>
+#include <avr/sleep.h>
+#include <Arduino.h>
+#include <LoRa.h>
+#include <LoRa_fns.h>
+#include <longSleep.h>
+// #include <Adafruit_SleepyDog.h>
 
-  // turn off various modules
-  power_all_disable();
-  
-  set_sleep_mode(SLEEP_MODE_IDLE);  
-  noInterrupts();           // timed sequence follows
-  sleep_enable();
- 
-  // turn off brown-out enable in software
-  MCUCR = bit (BODS) | bit (BODSE);
-  MCUCR = bit (BODS); 
-  interrupts();             // guarantees next instruction executed
-  sleep_cpu();              // sleep within 3 clock cycles of above    
-}
+typedef enum STATE {
+  SHOULD_SLEEP,
+  SHOULD_WAIT_FOR_ANSWERS,
+  SHOULD_BROADCAST,
+} STATE;
 
-void setup_lora() {
-  if (!LoRa.begin(915E6)) {
-    // deu bem ruim
-    exit(1);
-  }
-  
-  // register the receive callback
-  LoRa.onReceive(onReceive);
-  
-  // put the radio into receive mode
-  LoRa.receive();
-}
+STATE currentState = SHOULD_BROADCAST;
 
 void setup() {
-  setup_lora();
+  Serial.begin(9600);
+  // disable ADC with its clock too
+  ADCSRA = 0;
+  // probably should disable more peripherals
 
-  setup_low_power();
-}
 
-// since lora
-void onReceive(int packetSize) {
-  // received a packet
-  for (int i = 0; i < packetSize; i++) {
-//    pega uuid a chamar e enviar depois
-    LoRa.read();
+  if (!LoRa.begin(915E6)) {
+    // deu bem ruim
+    Serial.println("[Gateway]: deu bem ruim LoRa!");
+    while(1);
   }
 
-//  enviar pacotes pro nós
+  // register the receive callback
+  LoRa.onReceive(onReceive);
 
-  delay(1000);
-
-  Lora.end();
-
-  Watchdog.sleep(MINIMUM_TIME_BETWEEN_CALLS_IN_MS);
-
-  setup_lora();
+  currentState = SHOULD_BROADCAST;
+ 
+  Serial.println("[Gateway]: finished setup");
 }
 
-void loop() {}
+unsigned long lastTransmissionAt;
+// since lora
+void onReceive(int packetSize) {
+  LoRaMessage msg = LoRa_receiveMessage(packetSize);
+  // enable_timer();
+  // cur_time = now();
+  // can_downstream_at = cur_time + 1_000;
+  // enqueue({msg, can_downstream_at});
+  // queue consumer sends to server with esp32 and may enqueue downstream notifications
+  uint32_t* measurement = (uint32_t*)msg.data;
+  Serial.println("[Gateway]: received message:");
+  Serial.print("[Gateway]: from - ");
+  Serial.println(msg.senderId);
+  Serial.print("[Gateway]: measurement - ");
+  Serial.println(*measurement);
+
+// since using single lora without downstream notifications:
+  // esp32.send(stuff)
+  lastTransmissionAt = millis();
+}
+
+
+
+void loop() {
+  switch (currentState) {
+    case SHOULD_WAIT_FOR_ANSWERS: {
+      Serial.println("[Gateway]: SHOULD_WAIT_FOR_ANSWERS");
+      // millis overflows in about every 50 days but is not relevant
+      uint32_t now = millis();
+      uint32_t timeElapsedSinceLastTransmissionReceived = now - lastTransmissionAt;
+
+      if (timeElapsedSinceLastTransmissionReceived > 100) {
+        currentState = SHOULD_SLEEP;
+      }
+      delay(100);
+      break;
+      }
+    case SHOULD_BROADCAST:
+      Serial.println("[Gateway]: SHOULD_BROAD");
+      LoRa_gatewayTxMode();
+
+      LoRa_sendGatewayPollBroadcast();
+
+      // put the radio into receive mode
+      LoRa_gatewayRxMode();
+      currentState = SHOULD_WAIT_FOR_ANSWERS;
+      lastTransmissionAt = millis();
+      break;
+
+    case SHOULD_SLEEP:
+      Serial.println("[Gateway]: SHOULD_ZZZZ");
+      LoRa.sleep();
+      Serial.println("[Gateway]: finished receiving from all. Sleeping now zzz");
+      Serial.flush();
+      power_all_disable();
+      longSleep(MINIMUM_TIME_BETWEEN_POLLING_IN_MS);
+      power_all_enable();
+      Serial.println("[Gateway]: waking up");
+      currentState = SHOULD_BROADCAST;
+      break;
+
+    default:
+      Serial.println("[Gateway]: SOMETHING GONE WRONG");
+      break;
+  }
+  Serial.flush();
+}
