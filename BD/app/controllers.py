@@ -1,5 +1,7 @@
+from .exceptions import HTTPException, UnprocessableEntityException
 from flask import Blueprint, request, jsonify
 from .models import query_db, execute_db
+from .services import auth_service
 
 bp = Blueprint('main', __name__)
 
@@ -99,3 +101,47 @@ class SamplesController:
         execute_db("DELETE FROM samples WHERE id = ?", [id])
 
         return jsonify({"message": "Sample data deleted successfully!"}), 200
+
+class AuthController:
+    @bp.route("/auth/login", methods=["POST"])
+    def login():
+        try:
+            data = request.json
+            email = data.get('email')
+            password = data.get('password')
+            
+            if not email or not password:
+                raise UnprocessableEntityException("Login needs 'email' and 'password'!")
+
+            response_json = auth_service.login(email, password)
+
+            return jsonify(dict(response_json)), 200
+        except HTTPException as err:
+            return err.get_response()
+
+    @bp.route("/auth/create-user", methods=["POST"])
+    def create_user():
+        try:
+            data = request.json
+            email = data.get('email')
+            password = data.get('password')
+            name = data.get('name')
+
+            if not email or not name or not password:
+                raise UnprocessableEntityException("Required 'email', 'name' and 'password'!")
+
+            created_user_id = auth_service.create_user(email, password, name)
+
+            return jsonify(dict({"id": created_user_id})), 201
+        except HTTPException as err:
+            return err.get_response()
+        
+    @bp.route("/auth/me", methods=["GET"])
+    def me():
+        try:
+            session_params = auth_service.get_session_from_req(request)
+            user = auth_service.get_current_user(session_params["session_id"], session_params["user_id"])
+
+            return jsonify(dict(user)), 201
+        except HTTPException as err:
+            return err.get_response()

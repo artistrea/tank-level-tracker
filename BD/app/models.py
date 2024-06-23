@@ -28,6 +28,24 @@ def init_db():
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
             FOREIGN KEY(tank_id) REFERENCES tanks(id)
         );
+        -- separate credentials and user to prevent leaks
+        CREATE TABLE IF NOT EXISTS credentials (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            hashed_password TEXT UNIQUE NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            credential_id INTEGER NOT NULL,
+            FOREIGN KEY(credential_id) REFERENCES credentials(id)
+        );
+        CREATE TABLE IF NOT EXISTS sessions (
+            id TEXT PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            expires_at DATETIME DEFAULT (datetime('now', '+1 days')),
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        );
         ''')
     print("Database initialized!")
 
