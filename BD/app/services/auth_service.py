@@ -1,3 +1,4 @@
+import typing
 import uuid
 import bcrypt
 from datetime import datetime
@@ -5,7 +6,27 @@ from ..models import query_db, execute_db
 from ..exceptions import SessionExpiredException, UnauthorizedException, UnprocessableEntityException, ForbiddenException
 from flask import g
 
-def get_session_from_req(request):
+def authorize_request(
+            request,
+            action: typing.Literal["read", "create", "update", "delete"],
+            resource: typing.Literal["tank", "sample", "user"]
+        ):
+    session = get_session_from_req(request)
+
+    if get_current_user(session["session_id"], session["user_id"]):
+        # could make more complex checks.
+        # role based authorization, for example
+        if get_current_user()["email"] == "admin@gmail.com":
+            return
+
+    raise ForbiddenException(f"You don't have permission to {action} {resource}!")
+
+class GetSessionFromReqReturnType(typing.TypedDict):
+    session_id: str
+    user_id: str
+
+
+def get_session_from_req(request) -> GetSessionFromReqReturnType:
     authorization_header = request.headers.get("authorization")
     if not authorization_header:
         raise UnauthorizedException("Request needs to be sent with authorization header!")
@@ -26,20 +47,22 @@ def get_session_from_req(request):
         "user_id": user_id
     }
 
-def get_current_user(session_id, user_id):
+def get_current_user(session_id: typing.Optional[str]=None, user_id: typing.Optional[str]=None):
     if "current_user" in g:
         return g.current_user
-    print("session_id", f"'{session_id}'")
-    print("user_id", f"'{user_id}'")
+    if not session_id or not user_id:
+        raise Exception("É necessário que tenha sido chamado get_current_user com os parâmetros corretos antes de tentar chamar sem nenhum parâmetro")
+    # print("session_id", f"'{session_id}'")
+    # print("user_id", f"'{user_id}'1")
     current_session = query_db("SELECT * FROM sessions WHERE id = $1 AND user_id = $2", [session_id, user_id], one=True)
 
     if not current_session:
         raise UnauthorizedException("no session")
 
-    if (datetime.strptime(current_session.expires_at).date() < datetime.now().date()):
+    if (datetime.strptime(current_session["expires_at"], '%Y-%m-%d %H:%M:%S').date() < datetime.now().date()):
         raise SessionExpiredException("a")
 
-    g.current_user = query_db("SELECT * FROM users WHERE user_id = $1", [user_id], one=True)
+    g.current_user = query_db("SELECT * FROM users WHERE id = $1", [user_id], one=True)
 
     return g.current_user
 
@@ -57,13 +80,12 @@ def login(email, password):
     if not bcrypt.checkpw(password.encode('utf-8'), credential["hashed_password"]):
         raise UnauthorizedException("Wrong credentials used!")
 
-    session = query_db("INSERT INTO sessions (id, user_id) VALUES ($1, $2) RETURNING *", [str(uuid.uuid4()), user["id"]], one=True)
-
-    # era pra usar retry aqui na real
-    if not session:
-        raise UnauthorizedException("Tente outra veez")
+    session = execute_db("INSERT INTO sessions (id, user_id) VALUES ($1, $2) RETURNING *",
+        [str(uuid.uuid4()), user["id"]], returning="one"
+    )
 
     return session
+
 
 def create_user(email, password, name):
     already_user = query_db("SELECT id FROM users WHERE email = $1", [email], one=True)
@@ -81,5 +103,4 @@ def create_user(email, password, name):
     user_id = execute_db("INSERT INTO users (email, name, credential_id) VALUES ($1, $2, $3)", [email, name, credential_id])
 
     return user_id
-
 
