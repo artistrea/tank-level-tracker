@@ -43,7 +43,8 @@ export function useMapWithMarkers(
   setSelectedMarkerId: Dispatch<SetStateAction<string | undefined>>,
 ) {
   const hasRenderedMap = useRef(false);
-
+  
+  
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onClickCallback = (event: MapBrowserEvent<any>) => {
@@ -57,6 +58,18 @@ export function useMapWithMarkers(
     };
 
     map?.on("click", onClickCallback);
+
+
+    const onDblClickCallback = (event: MapBrowserEvent<any>) => {
+      const new_tank_coord = event.coordinate.toString();
+
+      // TODO: CRIAR NOVO TANK
+      navigator.clipboard.writeText(new_tank_coord)
+      event.preventDefault();
+    };
+
+    map?.on("dblclick", onDblClickCallback);
+
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onPointerMoveCallback = (event: MapBrowserEvent<any>) => {

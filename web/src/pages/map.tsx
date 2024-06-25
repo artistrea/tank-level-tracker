@@ -38,6 +38,10 @@ export default function MapPage() {
   useProtectedRoute();
   const mapRef = useRef<HTMLDivElement>(null);
 
+  // TODO: create post to create new tank
+
+  
+
   const { data: points, isLoading } =
     api.tank.getAllWithLatestSample.useQuery();
   const mappedPoints = pointsToClassifiedPointsMapper(points);

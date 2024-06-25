@@ -12,7 +12,7 @@ import { env } from "~/env";
 import { db } from "~/server/db";
 import { createTable } from "~/server/db/schema";
 
-const ALLOWED_EMAILS = ["artur8879@gmail.com"];
+const ALLOWED_EMAILS = ["artur8879@gmail.com", "lucascboa@gmail.com"];
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`

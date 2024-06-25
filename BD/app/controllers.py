@@ -89,7 +89,6 @@ class TanksController:
 
     @bp.route("/tanks", methods = ["POST"])
     def create_tank():
-        created_tank = query_db("SELECT * FROM tanks WHERE id = ?", [tank_id], one=True)
         auth_service.authorize_request(request, "create", "tank")
         data = request.json
 
