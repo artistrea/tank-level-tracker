@@ -50,6 +50,32 @@ export default function MapPage() {
   const [editEnable, setEditEnable] = useState(false)
 
   const [newTank, setNewTank] = useState<typeof mappedPoints>({} as typeof mappedPoints);
+
+  const [name, setTankName] = useState("");
+  const [maximumVolume, setTankMaximumVolume] = useState(0);
+  const [dangerZone, setTankDangerZone] = useState(0);
+  const [alertZone, setTankAlertZone] = useState(0);
+  const [volume, setTankVolume] = useState(0);
+
+  const handleCreate = (e) => {
+    setNewTank({...newTank,
+      name,
+      maximumVolume,
+      dangerZone,
+      alertZone,
+      volume,
+    })
+    console.log({...newTank,
+      name,
+      maximumVolume,
+      dangerZone,
+      alertZone,
+      volume,
+    })
+    e.preventDefault()
+  }
+
+
   useMapWithMarkers(mappedPoints, mapRef, selectedId, setSelectedId, editEnable && (
     (e:MapBrowserEvent<any>) => {
       let [newLong, newLat] = toLonLat(e.coordinate)
@@ -100,6 +126,78 @@ export default function MapPage() {
                     </AccordionContent>
                   </AccordionItem>
                 ))}
+                <AccordionItem
+                    className="rounded border-l-2 border-l-white-600 p-2"
+                    key={""}
+                    value={"_"}
+                  >
+                    <AccordionTrigger>{"+ Novo tanque"}</AccordionTrigger>
+                    <AccordionContent className="flex flex-col">
+                    <form onSubmit={handleCreate}>
+                        <div>
+                            <label>
+                                Nome:
+                                <input
+                                    type="text"
+                                    name="nome"
+                                    // value={name}
+                                    onChange={(e)=>setTankName(e.target.value)}
+                                    style={{ color: 'black' }}
+                                />
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                Volume Máximo:
+                                <input
+                                    type="number"
+                                    name="volumeMaximo"
+                                    // value={maximumVolume}
+                                    onChange={(e)=>setTankMaximumVolume(parseInt(e.target.value))}
+                                    style={{ color: 'black' }}
+                                />
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                Zona de alerta:
+                                <input
+                                    type="number"
+                                    name="zonaAlerta"
+                                    // value={dangerZone}
+                                    onChange={(e)=>setTankDangerZone(parseInt(e.target.value))}
+                                    style={{ color: 'black' }}
+                                />
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                Zona de Perigo:
+                                <input
+                                    type="number"
+                                    name="zonaPerigo"
+                                    // value={alertZone}
+                                    onChange={(e)=>setTankAlertZone(parseInt(e.target.value))}
+                                    style={{ color: 'black' }}
+                                />
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                Volume Atual:
+                                <input
+                                    type="number"
+                                    name="volumeAtual"
+                                    // value={volume}
+                                    onChange={(e)=>setTankVolume(parseInt(e.target.value))}
+                                    style={{ color: 'black' }}
+                                />
+                            </label>
+                        </div>
+                        <button type="submit">Criar</button>
+                    </form>
+                    </AccordionContent>
+                  </AccordionItem>
               {isLoading &&
                 Array.from({ length: 8 })?.map((p, i) => (
                   <AccordionItem
