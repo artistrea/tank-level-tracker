@@ -28,6 +28,7 @@ function pointsToClassifiedPointsMapper(
   return points
     ?.map((p) => ({
       ...p,
+      current_volume: getVolume(p),
       type:
         getVolume(p) <= p.volume_danger_zone
           ? ("danger" as const)
@@ -85,26 +86,20 @@ export default function MapPage() {
               type="single"
               collapsible
               className="flex max-h-[40rem] w-[40%] flex-col gap-4 overflow-scroll"
-              onValueChange={(v) => setSelectedId(v)}
-              value={selectedId}
+              onValueChange={(v) => setSelectedId(Number(v))}
+              value={selectedId?.toString()}
             >
               {!isLoading &&
                 mappedPoints?.map((p) => (
                   <AccordionItem
-                    data-type={
-                      p.volume <= p.dangerZone
-                        ? "danger"
-                        : p.volume <= p.alertZone
-                          ? "warning"
-                          : ""
-                    }
+                    data-type={p.type}
                     className="rounded border-l-2 border-l-green-600 p-2 data-[type=danger]:border-l-red-600 data-[type=warning]:border-l-yellow-600"
                     key={p.id}
-                    value={p.id}
+                    value={p.id.toString()}
                   >
                     <AccordionTrigger>{p.name}</AccordionTrigger>
                     <AccordionContent className="flex flex-col">
-                      {p.volume}/{p.maximumVolume} litros
+                      {p.current_volume}/{p.maximum_volume} litros
                       <Link href="/map" className="w-max place-self-end px-2">
                         Ver Histórico
                       </Link>
