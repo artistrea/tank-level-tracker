@@ -71,7 +71,18 @@ class TanksController:
     @bp.route("/tanks", methods = ["GET"])
     def getAll():
         # auth_service.authorize_request(request, "read", "tank")
-        tanks = db.query_db("SELECT * FROM tanks")
+        tanks = db.query_db("""
+            SELECT  t.*,
+                    s.top_to_liquid_distance_in_cm as latest_sample_top_to_liquid_distance_in_cm,
+                    s.timestamp as latest_sample_timestamp
+            FROM tanks t left join (
+                SELECT
+                    *,
+                    ROW_NUMBER() OVER (PARTITION BY tank_id ORDER BY timestamp) as row_number
+                FROM samples
+            ) s on s.tank_id = t.id
+            WHERE s.row_number = 1;
+                            """)
 
         return jsonify([dict(row) for row in tanks]), 200
 
