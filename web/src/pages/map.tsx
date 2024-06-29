@@ -15,9 +15,11 @@ import Link from "next/link";
 import { Skeleton } from "~/components/skeleton";
 
 function getVolume(t: TanksWithLatestSample) {
-  const maxHeight = t.maximum_volume / t.tank_base_area;
+  const maxHeight = (t.maximum_volume / t.tank_base_area) * 100;
+
   const liquidHeight = maxHeight - t.latest_sample_top_to_liquid_distance_in_cm;
-  return liquidHeight * t.tank_base_area;
+
+  return (liquidHeight / 100) * t.tank_base_area;
 }
 
 function pointsToClassifiedPointsMapper(
@@ -47,29 +49,16 @@ export default function MapPage() {
   useProtectedRoute();
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // TODO: create post to create new tank
-
   const { data: points, isLoading } =
     api.tank.getAllWithLatestSample.useQuery();
   const mappedPoints = pointsToClassifiedPointsMapper(points);
 
   const [selectedId, setSelectedId] = useState(points?.[0]?.id);
+
   useMapWithMarkers(mappedPoints, mapRef, selectedId, (e, ints) => {
     setSelectedId(ints[0]);
     e.preventDefault();
   });
-
-  // const [tankInfo];
-  // const [markerInfo, setMarkerInfo] = useState({});
-
-  // const tank = {
-  //   ...tankInfo,
-  //   ...markerInfo,
-  // };
-  // useMapWithMarkers(mappedPoints, mapRef, selectedId, (e, ints) => {
-  //   setMarkerInfo(toLonLat(e.coordinate));
-  //   e.preventDefault();
-  // });
 
   return (
     <>
