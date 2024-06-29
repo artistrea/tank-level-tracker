@@ -1,10 +1,4 @@
-import {
-  type RefObject,
-  type Dispatch,
-  type SetStateAction,
-  useEffect,
-  useRef,
-} from "react";
+import { type RefObject, useEffect, useRef } from "react";
 
 import { type MapBrowserEvent, Feature } from "ol";
 import "ol/ol.css";
@@ -29,6 +23,7 @@ const prio = { danger: 2, warning: 1, normal: 0 };
 
 const { map, markersLayer } = buildMapLayers();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type OnClick = (event: MapBrowserEvent<any>, intersectsIds: number[]) => void;
 
 export function useMapWithMarkers(
@@ -70,7 +65,7 @@ export function useMapWithMarkers(
       const new_tank_coord = event.coordinate.toString();
 
       // TODO: CRIAR NOVO TANK
-      navigator.clipboard.writeText(new_tank_coord);
+      void navigator.clipboard.writeText(new_tank_coord);
       event.preventDefault();
     };
 
@@ -94,7 +89,7 @@ export function useMapWithMarkers(
       map?.un("click", onClickCallback);
       map?.un("pointermove", onPointerMoveCallback);
     };
-  }, []);
+  }, [onClick]);
 
   useEffect(() => {
     markersLayer?.setSource(
