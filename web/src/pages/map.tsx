@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Navbar } from "~/components/navbar";
 import {
   Accordion,
@@ -13,6 +13,8 @@ import { useMapWithMarkers } from "~/utils/map/use-map-with-markers";
 import { useProtectedRoute } from "~/utils/use-protected-route";
 import Link from "next/link";
 import { Skeleton } from "~/components/skeleton";
+import { toLonLat } from "ol/proj";
+import { MapBrowserEvent } from "ol";
 
 function pointsToClassifiedPointsMapper(
   points: undefined | RouterOutputs["tank"]["getAllWithLatestSample"],
@@ -42,8 +44,20 @@ export default function MapPage() {
     api.tank.getAllWithLatestSample.useQuery();
   const mappedPoints = pointsToClassifiedPointsMapper(points);
 
+  
   const [selectedId, setSelectedId] = useState(points?.[0]?.id);
-  useMapWithMarkers(mappedPoints, mapRef, selectedId, setSelectedId);
+
+  const [editEnable, setEditEnable] = useState(false)
+
+  const [newTank, setNewTank] = useState<typeof mappedPoints>({} as typeof mappedPoints);
+  useMapWithMarkers(mappedPoints, mapRef, selectedId, setSelectedId, editEnable && (
+    (e:MapBrowserEvent<any>) => {
+      let [newLong, newLat] = toLonLat(e.coordinate)
+      setNewTank({...newTank, lat:newLat, long:newLong})
+      e.preventDefault()
+    })
+  );
+
 
   return (
     <>

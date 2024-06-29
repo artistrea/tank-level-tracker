@@ -4,11 +4,12 @@ import {
   type SetStateAction,
   useEffect,
   useRef,
+  useState,
 } from "react";
 
 import { type MapBrowserEvent, Feature } from "ol";
 import "ol/ol.css";
-import { fromLonLat } from "ol/proj";
+import { fromLonLat, toLonLat } from "ol/proj";
 import { Point } from "ol/geom";
 import Style from "ol/style/Style";
 import Icon from "ol/style/Icon";
@@ -41,8 +42,12 @@ export function useMapWithMarkers(
   mapRef: RefObject<HTMLDivElement>,
   selectedMarkerId: string | undefined,
   setSelectedMarkerId: Dispatch<SetStateAction<string | undefined>>,
+  onClick?: OnClick,
 ) {
   const hasRenderedMap = useRef(false);
+
+  const [newLocation, setNewLocation] = useState({name: "Nova localização"})
+
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,6 +58,10 @@ export function useMapWithMarkers(
           setSelectedMarkerId((prevId) => (prevId === id ? undefined : id));
         }
       });
+      if(onClick){
+        onClick(event);
+        setNewLocation({...newLocation, lat:toLonLat(event.coordinate)[0],long:toLonLat(event.coordinate)[1]})
+      }
       event.preventDefault();
     };
 
@@ -79,10 +88,11 @@ export function useMapWithMarkers(
   }, [setSelectedMarkerId]);
 
   useEffect(() => {
+    let locations = newLocation? markers?.concat(newLocation) : markers
     markersLayer?.setSource(
       new VectorSource({
         features:
-          markers?.map((p) => {
+          locations?.map((p) => {
             const feature = new Feature({
               geometry: new Point(fromLonLat([p.lat, p.long])),
             });
