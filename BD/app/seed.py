@@ -81,7 +81,7 @@ def seed():
         "volume_alert_zone": 5,
         "tank_base_area": 2,
         "latitude": -47.868,
-        "longitude": 15.765
+        "longitude": -15.765
     }
     tank_id = db.execute_db(f"INSERT INTO tanks ({', '.join(tanks_parameters)}) VALUES ({', '.join(8*['?'])})", [new_tank.get(var) for var in tanks_parameters]) 
     new_sample = {
