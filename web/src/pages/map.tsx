@@ -8,14 +8,20 @@ import {
   AccordionTrigger,
 } from "~/components/accordion";
 
-import { type RouterOutputs, api } from "~/utils/api";
+import { api, type TanksWithLatestSample } from "~/utils/api";
 import { useMapWithMarkers } from "~/utils/map/use-map-with-markers";
 import { useProtectedRoute } from "~/utils/use-protected-route";
 import Link from "next/link";
 import { Skeleton } from "~/components/skeleton";
 
+function getVolume(t: TanksWithLatestSample) {
+  const maxHeight = t.maximum_volume / t.tank_base_area;
+  const liquidHeight = maxHeight - t.latest_sample_top_to_liquid_distance_in_cm;
+  return liquidHeight * t.tank_base_area;
+}
+
 function pointsToClassifiedPointsMapper(
-  points: undefined | RouterOutputs["tank"]["getAllWithLatestSample"],
+  points: undefined | TanksWithLatestSample[],
 ) {
   const prio = { danger: 2, warning: 1, normal: 0 };
 
@@ -23,11 +29,13 @@ function pointsToClassifiedPointsMapper(
     ?.map((p) => ({
       ...p,
       type:
-        p.volume <= p.dangerZone
+        getVolume(p) <= p.volume_danger_zone
           ? ("danger" as const)
-          : p.volume <= p.alertZone
+          : getVolume(p) <= p.volume_alert_zone
             ? ("warning" as const)
             : ("normal" as const),
+      lat: p.latitude,
+      long: p.longitude,
     }))
     .sort((a, b) =>
       prio[a.type] > prio[b.type] ? -1 : prio[a.type] < prio[b.type] ? 1 : 0,
@@ -39,8 +47,6 @@ export default function MapPage() {
   const mapRef = useRef<HTMLDivElement>(null);
 
   // TODO: create post to create new tank
-
-  
 
   const { data: points, isLoading } =
     api.tank.getAllWithLatestSample.useQuery();

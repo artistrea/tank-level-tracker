@@ -18,6 +18,7 @@ import Fill from "ol/style/Fill";
 
 import Stroke from "ol/style/Stroke";
 import { buildMapLayers } from "./build-map-layers";
+import type { FeatureLike } from "ol/Feature";
 
 const TYPE_TO_COLOR = {
   danger: "rgb(255,20,20)",
@@ -35,22 +36,21 @@ export function useMapWithMarkers(
         lat: number;
         long: number;
         name: string;
-        id: string;
+        id: number;
         type: "danger" | "warning" | "normal";
       }[],
   mapRef: RefObject<HTMLDivElement>,
-  selectedMarkerId: string | undefined,
-  setSelectedMarkerId: Dispatch<SetStateAction<string | undefined>>,
+  selectedMarkerId: number | undefined,
+  setSelectedMarkerId: Dispatch<SetStateAction<number | undefined>>,
 ) {
   const hasRenderedMap = useRef(false);
-  
-  
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onClickCallback = (event: MapBrowserEvent<any>) => {
       map?.forEachFeatureAtPixel(event.pixel, function (feature, _layer) {
         const id = feature.getId();
-        if (typeof id === "string") {
+        if (typeof id === "number") {
           setSelectedMarkerId((prevId) => (prevId === id ? undefined : id));
         }
       });
@@ -59,17 +59,16 @@ export function useMapWithMarkers(
 
     map?.on("click", onClickCallback);
 
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onDblClickCallback = (event: MapBrowserEvent<any>) => {
       const new_tank_coord = event.coordinate.toString();
 
       // TODO: CRIAR NOVO TANK
-      navigator.clipboard.writeText(new_tank_coord)
+      navigator.clipboard.writeText(new_tank_coord);
       event.preventDefault();
     };
 
     map?.on("dblclick", onDblClickCallback);
-
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onPointerMoveCallback = (event: MapBrowserEvent<any>) => {
@@ -131,7 +130,7 @@ export function useMapWithMarkers(
 
             feature.set("isMarker", true);
 
-            return feature;
+            return feature as FeatureLike;
           }) ?? [],
       }),
     );
