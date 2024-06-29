@@ -29,6 +29,8 @@ const prio = { danger: 2, warning: 1, normal: 0 };
 
 const { map, markersLayer } = buildMapLayers();
 
+type OnClick = (event: MapBrowserEvent<any>, intersectsIds: number[]) => void;
+
 export function useMapWithMarkers(
   markers:
     | undefined
@@ -41,20 +43,24 @@ export function useMapWithMarkers(
       }[],
   mapRef: RefObject<HTMLDivElement>,
   selectedMarkerId: number | undefined,
-  setSelectedMarkerId: Dispatch<SetStateAction<number | undefined>>,
+  onClick?: OnClick,
 ) {
   const hasRenderedMap = useRef(false);
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onClickCallback = (event: MapBrowserEvent<any>) => {
+      const intersects: number[] = [];
       map?.forEachFeatureAtPixel(event.pixel, function (feature, _layer) {
         const id = feature.getId();
         if (typeof id === "number") {
-          setSelectedMarkerId((prevId) => (prevId === id ? undefined : id));
+          intersects.push(id);
+          // setSelectedMarkerId((prevId) => (prevId === id ? undefined : id));
         }
       });
-      event.preventDefault();
+      if (onClick) {
+        onClick(event, intersects);
+      }
     };
 
     map?.on("click", onClickCallback);
@@ -88,7 +94,7 @@ export function useMapWithMarkers(
       map?.un("click", onClickCallback);
       map?.un("pointermove", onPointerMoveCallback);
     };
-  }, [setSelectedMarkerId]);
+  }, []);
 
   useEffect(() => {
     markersLayer?.setSource(

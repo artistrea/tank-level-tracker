@@ -53,7 +53,22 @@ export default function MapPage() {
   const mappedPoints = pointsToClassifiedPointsMapper(points);
 
   const [selectedId, setSelectedId] = useState(points?.[0]?.id);
-  useMapWithMarkers(mappedPoints, mapRef, selectedId, setSelectedId);
+  useMapWithMarkers(mappedPoints, mapRef, selectedId, (e, ints) => {
+    setSelectedId(ints[0]);
+    e.preventDefault();
+  });
+
+  // const [tankInfo];
+  // const [markerInfo, setMarkerInfo] = useState({});
+
+  // const tank = {
+  //   ...tankInfo,
+  //   ...markerInfo,
+  // };
+  // useMapWithMarkers(mappedPoints, mapRef, selectedId, (e, ints) => {
+  //   setMarkerInfo(toLonLat(e.coordinate));
+  //   e.preventDefault();
+  // });
 
   return (
     <>
