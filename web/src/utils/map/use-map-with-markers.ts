@@ -46,7 +46,7 @@ export function useMapWithMarkers(
 ) {
   const hasRenderedMap = useRef(false);
 
-  const [newLocation, setNewLocation] = useState({name: "Nova localização"})
+  const [newLocation, setNewLocation] = useState({})
 
 
   useEffect(() => {
@@ -60,11 +60,12 @@ export function useMapWithMarkers(
       });
       if(onClick){
         onClick(event);
-        setNewLocation({...newLocation, lat:toLonLat(event.coordinate)[0],long:toLonLat(event.coordinate)[1]})
+        setNewLocation({name: "Nova localização", id:"edit", lat:toLonLat(event.coordinate)[0],long:toLonLat(event.coordinate)[1]})
+      }else{
+        setNewLocation({})
       }
       event.preventDefault();
     };
-
     map?.on("click", onClickCallback);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,7 +86,7 @@ export function useMapWithMarkers(
       map?.un("click", onClickCallback);
       map?.un("pointermove", onPointerMoveCallback);
     };
-  }, [setSelectedMarkerId]);
+  }, [setSelectedMarkerId, onClick]);
 
   useEffect(() => {
     let locations = newLocation? markers?.concat(newLocation) : markers

@@ -15,6 +15,7 @@ import Link from "next/link";
 import { Skeleton } from "~/components/skeleton";
 import { toLonLat } from "ol/proj";
 import { MapBrowserEvent } from "ol";
+import { tree } from "next/dist/build/templates/app-page";
 
 function pointsToClassifiedPointsMapper(
   points: undefined | RouterOutputs["tank"]["getAllWithLatestSample"],
@@ -49,37 +50,56 @@ export default function MapPage() {
 
   const [editEnable, setEditEnable] = useState(false)
 
-  const [newTank, setNewTank] = useState<typeof mappedPoints>({} as typeof mappedPoints);
-
   const [name, setTankName] = useState("");
-  const [maximumVolume, setTankMaximumVolume] = useState(0);
-  const [dangerZone, setTankDangerZone] = useState(0);
-  const [alertZone, setTankAlertZone] = useState(0);
-  const [volume, setTankVolume] = useState(0);
+  const [lat, setTankLat] = useState(0);
+  const [long, setTankLong] = useState(0);
+  const [maximumVolume, setTankMaximumVolume] = useState("");
+  const [dangerZone, setTankDangerZone] = useState("");
+  const [alertZone, setTankAlertZone] = useState("");
+  const [volume, setTankVolume] = useState("");
 
-  const handleCreate = (e) => {
-    setNewTank({...newTank,
-      name,
-      maximumVolume,
-      dangerZone,
-      alertZone,
-      volume,
-    })
-    console.log({...newTank,
-      name,
-      maximumVolume,
-      dangerZone,
-      alertZone,
-      volume,
-    })
+  const handleCreate = (e:any) => {
+    if(!name &&
+      !maximumVolume &&
+      !dangerZone &&
+      !alertZone &&
+      !volume
+      ){
+      alert("Preencha todos os campos")
+    }else if(
+      !lat &&
+      !long
+      ){
+      alert("Selecione uma localização no mapa")  
+    }else{
+      console.log({
+        name,
+        maximumVolume,
+        dangerZone,
+        alertZone,
+        volume,
+        lat,
+        long
+      })
+      // TODO: API.post("/tanks", {
+      //   name,
+      //   maximumVolume,
+      //   dangerZone,
+      //   alertZone,
+      //   volume,
+      //   lat,
+      //   long
+      // }).then((response)=>response.data)
+    }
     e.preventDefault()
   }
 
 
   useMapWithMarkers(mappedPoints, mapRef, selectedId, setSelectedId, editEnable && (
     (e:MapBrowserEvent<any>) => {
-      let [newLong, newLat] = toLonLat(e.coordinate)
-      setNewTank({...newTank, lat:newLat, long:newLong})
+      let [newLong, newLat]:number[] = toLonLat(e.coordinate)
+      setTankLat(newLat as number);
+      setTankLong(newLong as number);
       e.preventDefault()
     })
   );
@@ -100,7 +120,10 @@ export default function MapPage() {
               type="single"
               collapsible
               className="flex max-h-[40rem] w-[40%] flex-col gap-4 overflow-scroll"
-              onValueChange={(v) => setSelectedId(v)}
+              onValueChange={(v) => {
+                setSelectedId(v);
+                setEditEnable(v==="edit");console.log(v==="edit")
+              }}
               value={selectedId}
             >
               {!isLoading &&
@@ -129,72 +152,94 @@ export default function MapPage() {
                 <AccordionItem
                     className="rounded border-l-2 border-l-white-600 p-2"
                     key={""}
-                    value={"_"}
+                    value={"edit"}
                   >
                     <AccordionTrigger>{"+ Novo tanque"}</AccordionTrigger>
                     <AccordionContent className="flex flex-col">
                     <form onSubmit={handleCreate}>
-                        <div>
-                            <label>
+                        <div className="m-1">
+                            <label className="m-1">
                                 Nome:
                                 <input
+                                    className="bg-zinc-800 border-b m-1"
                                     type="text"
                                     name="nome"
-                                    // value={name}
+                                    value={name}
                                     onChange={(e)=>setTankName(e.target.value)}
-                                    style={{ color: 'black' }}
                                 />
                             </label>
                         </div>
-                        <div>
-                            <label>
+                        <div className="m-1">
+                            <label className="m-1">
                                 Volume Máximo:
                                 <input
+                                    className="bg-zinc-800 border-b m-1"
                                     type="number"
+                                    min="0"
                                     name="volumeMaximo"
-                                    // value={maximumVolume}
+                                    defaultValue={maximumVolume}
                                     onChange={(e)=>setTankMaximumVolume(parseInt(e.target.value))}
-                                    style={{ color: 'black' }}
                                 />
                             </label>
                         </div>
-                        <div>
-                            <label>
+                        <div className="m-1">
+                            <label className="m-1">
                                 Zona de alerta:
                                 <input
+                                    className="bg-zinc-800 border-b m-1"
                                     type="number"
+                                    min="0"
+                                    max={maximumVolume}
                                     name="zonaAlerta"
-                                    // value={dangerZone}
-                                    onChange={(e)=>setTankDangerZone(parseInt(e.target.value))}
-                                    style={{ color: 'black' }}
+                                    value={alertZone}
+                                    onChange={(e)=>setTankAlertZone(parseInt(e.target.value))}
                                 />
                             </label>
                         </div>
-                        <div>
-                            <label>
+                        <div className="m-1">
+                            <label className="m-1">
                                 Zona de Perigo:
                                 <input
+                                    className="bg-zinc-800 border-b m-1"
                                     type="number"
+                                    min="0"
+                                    max={alertZone}
                                     name="zonaPerigo"
-                                    // value={alertZone}
-                                    onChange={(e)=>setTankAlertZone(parseInt(e.target.value))}
-                                    style={{ color: 'black' }}
+                                    value={dangerZone}
+                                    onChange={(e)=>setTankDangerZone(parseInt(e.target.value))}
                                 />
                             </label>
                         </div>
-                        <div>
-                            <label>
+                        <div className="m-1">
+                            <label className="m-1">
                                 Volume Atual:
                                 <input
+                                    className="bg-zinc-800 border-b m-1"
                                     type="number"
+                                    min="0"
+                                    max={maximumVolume}
                                     name="volumeAtual"
-                                    // value={volume}
+                                    value={volume}
                                     onChange={(e)=>setTankVolume(parseInt(e.target.value))}
-                                    style={{ color: 'black' }}
                                 />
                             </label>
                         </div>
-                        <button type="submit">Criar</button>
+                        <div className="m-1">
+                            <label className="m-1">
+                                Localização:
+                                <input
+                                    className="bg-zinc-800 m-1"
+                                    disabled={true}
+                                    type="text"
+                                    name="localização"
+                                    value={"Selecione no mapa"}
+                                />
+                            </label>
+                        </div>
+                        <button className="p-1 mt-3 bg-zinc-700"
+                          type="submit">
+                            Criar
+                          </button>
                     </form>
                     </AccordionContent>
                   </AccordionItem>
