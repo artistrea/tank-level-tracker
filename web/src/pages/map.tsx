@@ -61,6 +61,7 @@ export default function MapPage() {
 
   const [editEnable, setEditEnable] = useState(false)
 
+  const tempId:number = -1
   const [name, setTankName] = useState("");
   const [lat, setTankLat] = useState(0);
   const [long, setTankLong] = useState(0);
@@ -113,8 +114,9 @@ export default function MapPage() {
         let [newLong, newLat]:number[] = toLonLat(e.coordinate)
         setTankLat(newLat as number);
         setTankLong(newLong as number);
-        setSelectedId(-1) // deixar o marcador temporário em destaque
+        setSelectedId(tempId) // deixar o marcador temporário em destaque
         e.preventDefault()
+        return tempId
   }   : undefined);
 
 
@@ -136,7 +138,7 @@ export default function MapPage() {
               value={selectedId?.toString()}
               onValueChange={(v) => {
                 setSelectedId(Number(v));
-                setEditEnable(v==="edit");
+                setEditEnable(v===tempId.toString());
               }}
             >
               {!isLoading &&
@@ -158,8 +160,8 @@ export default function MapPage() {
                 ))}
                 <AccordionItem
                     className="rounded border-l-2 border-l-white-600 p-2"
-                    key={-1}
-                    value={"edit"}
+                    key={tempId}
+                    value={tempId.toString()}
                   >
                     <AccordionTrigger>{"+ Novo tanque"}</AccordionTrigger>
                     <AccordionContent className="flex flex-col">

@@ -31,8 +31,8 @@ const prio = { danger: 2, warning: 1, normal: 0 };
 const { map, markersLayer } = buildMapLayers();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type OnClick = (event: MapBrowserEvent<any>) => void;
-type setId = (intersectsIds: number[]) => void;
+type OnClick = (event: MapBrowserEvent<any>) => number;
+type onSelect = (intersectsIds: number[]) => void;
 
 export function useMapWithMarkers(
   markers:
@@ -46,7 +46,7 @@ export function useMapWithMarkers(
       }[],
   mapRef: RefObject<HTMLDivElement>,
   selectedMarkerId: number | undefined,
-  onSelect: setId,
+  onSelect: onSelect,
   onClick?: OnClick,
 ) {
   const hasRenderedMap = useRef(false);
@@ -66,8 +66,8 @@ export function useMapWithMarkers(
         }
       });
       if(onClick){
-        onClick(event);
-        setNewLocation({name: "Nova localização", id:-1, lat:toLonLat(event.coordinate)[0],long:toLonLat(event.coordinate)[1]})
+        let tempId = onClick(event);
+        setNewLocation({name: "Nova localização", id:tempId, lat:toLonLat(event.coordinate)[0],long:toLonLat(event.coordinate)[1]})
       }else{
         setNewLocation({});
         onSelect(intersects);
