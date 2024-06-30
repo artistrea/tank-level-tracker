@@ -158,7 +158,7 @@ export default function MapPage() {
                 ))}
                 <AccordionItem
                     className="rounded border-l-2 border-l-white-600 p-2"
-                    key={""}
+                    key={-1}
                     value={"edit"}
                   >
                     <AccordionTrigger>{"+ Novo tanque"}</AccordionTrigger>
