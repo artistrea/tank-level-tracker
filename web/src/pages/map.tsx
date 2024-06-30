@@ -8,7 +8,7 @@ import {
   AccordionTrigger,
 } from "~/components/accordion";
 
-import { type RouterOutputs, api } from "~/utils/api";
+import { api, type TanksWithLatestSample } from "~/utils/api";
 import { useMapWithMarkers } from "~/utils/map/use-map-with-markers";
 import { useProtectedRoute } from "~/utils/use-protected-route";
 import Link from "next/link";
@@ -17,20 +17,31 @@ import { toLonLat } from "ol/proj";
 import { MapBrowserEvent } from "ol";
 import { tree } from "next/dist/build/templates/app-page";
 
+function getVolume(t: TanksWithLatestSample) {
+  const maxHeight = (t.maximum_volume / t.tank_base_area) * 100;
+
+  const liquidHeight = maxHeight - t.latest_sample_top_to_liquid_distance_in_cm;
+
+  return (liquidHeight / 100) * t.tank_base_area;
+}
+
 function pointsToClassifiedPointsMapper(
-  points: undefined | RouterOutputs["tank"]["getAllWithLatestSample"],
+  points: undefined | TanksWithLatestSample[],
 ) {
   const prio = { danger: 2, warning: 1, normal: 0 };
 
   return points
     ?.map((p) => ({
       ...p,
+      current_volume: getVolume(p),
       type:
-        p.volume <= p.dangerZone
+        getVolume(p) <= p.volume_danger_zone
           ? ("danger" as const)
-          : p.volume <= p.alertZone
+          : getVolume(p) <= p.volume_alert_zone
             ? ("warning" as const)
             : ("normal" as const),
+      lat: p.latitude,
+      long: p.longitude,
     }))
     .sort((a, b) =>
       prio[a.type] > prio[b.type] ? -1 : prio[a.type] < prio[b.type] ? 1 : 0,
@@ -50,13 +61,14 @@ export default function MapPage() {
 
   const [editEnable, setEditEnable] = useState(false)
 
+  const tempId:number = -1
   const [name, setTankName] = useState("");
   const [lat, setTankLat] = useState(0);
   const [long, setTankLong] = useState(0);
-  const [maximumVolume, setTankMaximumVolume] = useState("");
-  const [dangerZone, setTankDangerZone] = useState("");
-  const [alertZone, setTankAlertZone] = useState("");
-  const [volume, setTankVolume] = useState("");
+  const [maximumVolume, setTankMaximumVolume] = useState(0);
+  const [dangerZone, setTankDangerZone] = useState(0);
+  const [alertZone, setTankAlertZone] = useState(0);
+  const [volume, setTankVolume] = useState(0);
 
   const handleCreate = (e:any) => {
     if(!name &&
@@ -95,14 +107,17 @@ export default function MapPage() {
   }
 
 
-  useMapWithMarkers(mappedPoints, mapRef, selectedId, setSelectedId, editEnable && (
-    (e:MapBrowserEvent<any>) => {
-      let [newLong, newLat]:number[] = toLonLat(e.coordinate)
-      setTankLat(newLat as number);
-      setTankLong(newLong as number);
-      e.preventDefault()
-    })
-  );
+  useMapWithMarkers(mappedPoints, mapRef, selectedId, (ints:number[]) => {
+      setSelectedId(ints[0])
+    }, editEnable ? 
+      (e:MapBrowserEvent<any>) => {
+        let [newLong, newLat]:number[] = toLonLat(e.coordinate)
+        setTankLat(newLat as number);
+        setTankLong(newLong as number);
+        setSelectedId(tempId) // deixar o marcador temporário em destaque
+        e.preventDefault()
+        return tempId
+  }   : undefined);
 
 
   return (
@@ -120,29 +135,23 @@ export default function MapPage() {
               type="single"
               collapsible
               className="flex max-h-[40rem] w-[40%] flex-col gap-4 overflow-scroll"
+              value={selectedId?.toString()}
               onValueChange={(v) => {
-                setSelectedId(v);
-                setEditEnable(v==="edit");console.log(v==="edit")
+                setSelectedId(Number(v));
+                setEditEnable(v===tempId.toString());
               }}
-              value={selectedId}
             >
               {!isLoading &&
                 mappedPoints?.map((p) => (
                   <AccordionItem
-                    data-type={
-                      p.volume <= p.dangerZone
-                        ? "danger"
-                        : p.volume <= p.alertZone
-                          ? "warning"
-                          : ""
-                    }
+                    data-type={p.type}
                     className="rounded border-l-2 border-l-green-600 p-2 data-[type=danger]:border-l-red-600 data-[type=warning]:border-l-yellow-600"
                     key={p.id}
-                    value={p.id}
+                    value={p.id.toString()}
                   >
                     <AccordionTrigger>{p.name}</AccordionTrigger>
                     <AccordionContent className="flex flex-col">
-                      {p.volume}/{p.maximumVolume} litros
+                      {p.current_volume}/{p.maximum_volume} litros
                       <Link href="/map" className="w-max place-self-end px-2">
                         Ver Histórico
                       </Link>
@@ -151,8 +160,8 @@ export default function MapPage() {
                 ))}
                 <AccordionItem
                     className="rounded border-l-2 border-l-white-600 p-2"
-                    key={""}
-                    value={"edit"}
+                    key={tempId}
+                    value={tempId.toString()}
                   >
                     <AccordionTrigger>{"+ Novo tanque"}</AccordionTrigger>
                     <AccordionContent className="flex flex-col">

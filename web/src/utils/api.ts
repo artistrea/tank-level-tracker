@@ -1,68 +1,75 @@
-/**
- * This is the client-side entrypoint for your tRPC API. It is used to create the `api` object which
- * contains the Next.js App-wrapper, as well as your type-safe React Query hooks.
- *
- * We also create a few inference helpers for input and output types.
- */
-import { httpBatchLink, loggerLink } from "@trpc/client";
-import { createTRPCNext } from "@trpc/next";
-import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
-import superjson from "superjson";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { env } from "~/env";
 
-import { type AppRouter } from "~/server/api/root";
-
-const getBaseUrl = () => {
-  if (typeof window !== "undefined") return ""; // browser should use relative url
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
-  return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
-};
-
-/** A set of type-safe react-query hooks for your tRPC API. */
-export const api = createTRPCNext<AppRouter>({
-  config() {
-    return {
-      /**
-       * Links used to determine request flow from client to server.
-       *
-       * @see https://trpc.io/docs/links
-       */
-      links: [
-        loggerLink({
-          enabled: (opts) =>
-            process.env.NODE_ENV === "development" ||
-            (opts.direction === "down" && opts.result instanceof Error),
-        }),
-        httpBatchLink({
-          /**
-           * Transformer used for data de-serialization from the server.
-           *
-           * @see https://trpc.io/docs/data-transformers
-           */
-          transformer: superjson,
-          url: `${getBaseUrl()}/api/trpc`,
-        }),
-      ],
-    };
-  },
-  /**
-   * Whether tRPC should await queries when server rendering pages.
-   *
-   * @see https://trpc.io/docs/nextjs#ssr-boolean-default-false
-   */
-  ssr: false,
-  transformer: superjson,
+export const baseApi = axios.create({
+  baseURL: env.NEXT_PUBLIC_API_BASE_URL,
 });
 
-/**
- * Inference helper for inputs.
- *
- * @example type HelloInput = RouterInputs['example']['hello']
- */
-export type RouterInputs = inferRouterInputs<AppRouter>;
+type Tanks = {
+  id: number;
+  maximum_volume: number;
+  name: string;
+  description: string;
+  volume_danger_zone: number;
+  volume_alert_zone: number;
+  tank_base_area: number;
+  latitude: number;
+  longitude: number;
+};
 
-/**
- * Inference helper for outputs.
- *
- * @example type HelloOutput = RouterOutputs['example']['hello']
- */
-export type RouterOutputs = inferRouterOutputs<AppRouter>;
+type Samples = {
+  id: number;
+  tank_id: number;
+  top_to_liquid_distance_in_cm: number;
+  // iso string:
+  timestamp: string;
+};
+
+export type Sessions = {
+  id: string;
+  user_id: number;
+  expires_at: string;
+};
+
+export type Users = {
+  id: number;
+  email: string;
+  name: string;
+  // credential_id: number;
+};
+
+export type TanksWithLatestSample = Tanks & {
+  latest_sample_top_to_liquid_distance_in_cm: Samples["top_to_liquid_distance_in_cm"];
+  latest_sample_timestamp: Samples["timestamp"];
+};
+
+export const api = {
+  tank: {
+    getAllWithLatestSample: {
+      useQuery() {
+        return useQuery({
+          queryKey: ["tanks", "getAllWithLatestSample"],
+          async queryFn() {
+            return baseApi
+              .get<TanksWithLatestSample[]>("/tanks")
+              .then((res) => res.data);
+          },
+        });
+      },
+    },
+  },
+  auth: {
+    login: {
+      useMutation() {
+        return useMutation({
+          async mutationFn(credentials: { email: string; password: string }) {
+            return baseApi
+              .post<Sessions>("/auth/login", credentials)
+              .then((res) => res.data);
+          },
+        });
+      },
+    },
+  },
+};

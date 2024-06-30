@@ -19,6 +19,7 @@ import Fill from "ol/style/Fill";
 
 import Stroke from "ol/style/Stroke";
 import { buildMapLayers } from "./build-map-layers";
+import type { FeatureLike } from "ol/Feature";
 
 const TYPE_TO_COLOR = {
   danger: "rgb(255,20,20)",
@@ -29,6 +30,10 @@ const prio = { danger: 2, warning: 1, normal: 0 };
 
 const { map, markersLayer } = buildMapLayers();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type OnClick = (event: MapBrowserEvent<any>) => number;
+type onSelect = (intersectsIds: number[]) => void;
+
 export function useMapWithMarkers(
   markers:
     | undefined
@@ -36,12 +41,12 @@ export function useMapWithMarkers(
         lat: number;
         long: number;
         name: string;
-        id: string;
+        id: number;
         type: "danger" | "warning" | "normal";
       }[],
   mapRef: RefObject<HTMLDivElement>,
-  selectedMarkerId: string | undefined,
-  setSelectedMarkerId: Dispatch<SetStateAction<string | undefined>>,
+  selectedMarkerId: number | undefined,
+  onSelect: onSelect,
   onClick?: OnClick,
 ) {
   const hasRenderedMap = useRef(false);
@@ -52,21 +57,35 @@ export function useMapWithMarkers(
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onClickCallback = (event: MapBrowserEvent<any>) => {
+      const intersects: number[] = [];
       map?.forEachFeatureAtPixel(event.pixel, function (feature, _layer) {
         const id = feature.getId();
-        if (typeof id === "string") {
-          setSelectedMarkerId((prevId) => (prevId === id ? undefined : id));
+        if (typeof id === "number") {
+          intersects.push(id);
+          // setSelectedMarkerId((prevId) => (prevId === id ? undefined : id));
         }
       });
       if(onClick){
-        onClick(event);
-        setNewLocation({name: "Nova localização", id:"edit", lat:toLonLat(event.coordinate)[0],long:toLonLat(event.coordinate)[1]})
+        let tempId = onClick(event);
+        setNewLocation({name: "Nova localização", id:tempId, lat:toLonLat(event.coordinate)[0],long:toLonLat(event.coordinate)[1]})
       }else{
-        setNewLocation({})
+        setNewLocation({});
+        onSelect(intersects);
       }
       event.preventDefault();
     };
     map?.on("click", onClickCallback);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const onDblClickCallback = (event: MapBrowserEvent<any>) => {
+      const new_tank_coord = event.coordinate.toString();
+
+      // TODO: CRIAR NOVO TANK
+      void navigator.clipboard.writeText(new_tank_coord);
+      event.preventDefault();
+    };
+
+    map?.on("dblclick", onDblClickCallback);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onPointerMoveCallback = (event: MapBrowserEvent<any>) => {
@@ -86,10 +105,10 @@ export function useMapWithMarkers(
       map?.un("click", onClickCallback);
       map?.un("pointermove", onPointerMoveCallback);
     };
-  }, [setSelectedMarkerId, onClick]);
+  }, [onClick]);
 
   useEffect(() => {
-    let locations = newLocation? markers?.concat(newLocation) : markers
+    let locations = newLocation ? markers?.concat(newLocation) : markers
     markersLayer?.setSource(
       new VectorSource({
         features:
@@ -129,7 +148,7 @@ export function useMapWithMarkers(
 
             feature.set("isMarker", true);
 
-            return feature;
+            return feature as FeatureLike;
           }) ?? [],
       }),
     );

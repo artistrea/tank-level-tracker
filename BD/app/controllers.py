@@ -1,8 +1,13 @@
 from .exceptions import HTTPException, UnprocessableEntityException, InternalServerErrorException
-from flask import Blueprint, request, jsonify
-from .models import query_db, execute_db
-from .services import auth_service
+from flask import Blueprint, request, jsonify, make_response
+from .models import DB
+from .services.auth_service import AuthService
 from schema import Schema, And, Use, SchemaError
+from flask import g
+
+db = DB(g)
+
+auth_service = AuthService(db)
 
 bp = Blueprint('main', __name__)
 
@@ -19,9 +24,6 @@ def internal_server_error_handler(error: Exception):
     return InternalServerErrorException().get_response()
 
 bp.register_error_handler(Exception, internal_server_error_handler)
-
-bp = Blueprint('main', __name__)
-
 
 def check(conf_schema, conf):
     try:
@@ -68,8 +70,19 @@ class TanksController:
 
     @bp.route("/tanks", methods = ["GET"])
     def getAll():
-        auth_service.authorize_request(request, "read", "tank")
-        tanks = query_db("SELECT * FROM tanks")
+        # auth_service.authorize_request(request, "read", "tank")
+        tanks = db.query_db("""
+            SELECT  t.*,
+                    s.top_to_liquid_distance_in_cm as latest_sample_top_to_liquid_distance_in_cm,
+                    s.timestamp as latest_sample_timestamp
+            FROM tanks t left join (
+                SELECT
+                    *,
+                    ROW_NUMBER() OVER (PARTITION BY tank_id ORDER BY timestamp) as row_number
+                FROM samples
+            ) s on s.tank_id = t.id
+            WHERE s.row_number = 1;
+                            """)
 
         return jsonify([dict(row) for row in tanks]), 200
 
@@ -78,7 +91,7 @@ class TanksController:
     @bp.route("/tanks/<int:id>", methods = ["GET"])
     def getById(id):
         auth_service.authorize_request(request, "read", "tank")
-        tank = query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
+        tank = db.query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
 
         if tank:
             return jsonify(dict(tank)), 200
@@ -89,15 +102,14 @@ class TanksController:
 
     @bp.route("/tanks", methods = ["POST"])
     def create_tank():
-        created_tank = query_db("SELECT * FROM tanks WHERE id = ?", [tank_id], one=True)
         auth_service.authorize_request(request, "create", "tank")
         data = request.json
 
         if not check(create_tank_schema, data):
             return jsonify({"message": "It's not possible to create a tank without 'top_to_liquid_distance_in_cm', 'tank_base_area', or 'volume'!"}), 400
 
-        tank_id = execute_db(f"INSERT INTO tanks ({", ".join(tanks_parameters)}) VALUES ({", ".join(8*["?"])})", [data.get(var) for var in tanks_parameters]) 
-        created_tank = query_db("SELECT * FROM tanks WHERE id = ?", [tank_id], one=True)
+        tank_id = db.execute_db(f"INSERT INTO tanks ({', '.join(tanks_parameters)}) VALUES ({', '.join(8*['?'])})", [data.get(var) for var in tanks_parameters]) 
+        created_tank = db.query_db("SELECT * FROM tanks WHERE id = ?", [tank_id], one=True)
 
         return jsonify(dict(created_tank)), 201
 
@@ -111,13 +123,14 @@ class TanksController:
         if not check(create_tank_schema, data):
             return jsonify({"message": "It's not possible to update the tank without 'top_to_liquid_distance_in_cm', 'tank_base_area', or 'volume'!"}), 400
 
-        tank = query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
+        tank = db.query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
 
         if not tank:
             return jsonify({"error": "Tank not found!"}), 404
 
-        execute_db(f"UPDATE tanks SET {','.join([f"{var} = ?" for var in tanks_parameters])} WHERE id = ?", [data.get(var) for var in tanks_parameters]+[id])
-        updated_tank = query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
+        question_marks = ','.join([f"{var} = ?" for var in tanks_parameters])
+        db.execute_db(f"UPDATE tanks SET {question_marks} WHERE id = ?", [data.get(var) for var in tanks_parameters]+[id])
+        updated_tank = db.query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
 
         return jsonify(dict(updated_tank)), 200
     
@@ -126,16 +139,14 @@ class TanksController:
     @bp.route("/tanks/<int:id>", methods = ["DELETE"])
     def delete_tank(id):
         auth_service.authorize_request(request, "delete", "tank")
-        tank = query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
+        tank = db.query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
 
         if not tank:
             return jsonify({"error": "Tank not found!"}), 404
         
-        execute_db("DELETE FROM tanks WHERE id = ?", [id])
+        db.execute_db("DELETE FROM tanks WHERE id = ?", [id])
 
         return jsonify({"message": "Tank data deleted successfully!"}), 200
-
-
 
 
 
@@ -148,8 +159,8 @@ class SamplesController:
         if not check(create_samples_schema, data):
             return jsonify({"message": "Invalid Data!"}), 400
 
-        sample_id = execute_db(f"INSERT INTO samples ({", ".join(samples_parameters)}) VALUES ({", ".join(2*["?"])})", [data.get(var) for var in samples_parameters])
-        created_sample = query_db("SELECT * FROM samples WHERE id = ?", [sample_id], one=True)
+        sample_id = db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(2*['?'])})", [data.get(var) for var in samples_parameters])
+        created_sample = db.query_db("SELECT * FROM samples WHERE id = ?", [sample_id], one=True)
 
         return jsonify(dict(created_sample)), 201
 
@@ -158,12 +169,12 @@ class SamplesController:
     @bp.route("/samples/<int:id>", methods = ["DELETE"])
     def delete_sample(id):
         auth_service.authorize_request(request, "delete", "sample")
-        sample = query_db("SELECT * FROM samples WHERE id = ?", [id], one=True)
+        sample = db.query_db("SELECT * FROM samples WHERE id = ?", [id], one=True)
 
         if not sample:
             return jsonify({"error": "Sample not found!"}), 404
         
-        execute_db("DELETE FROM samples WHERE id = ?", [id])
+        db.execute_db("DELETE FROM samples WHERE id = ?", [id])
 
         return jsonify({"message": "Sample data deleted successfully!"}), 200
 
