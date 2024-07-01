@@ -43,9 +43,17 @@ void setup() {
   Serial.println("[Gateway]: finished setup");
 }
 
+uint32_t before_rtt, after_rtt=0;
+
 unsigned long lastTransmissionAt;
 // since lora
 void onReceive(int packetSize) {
+  after_rtt = micros();
+
+  Serial.print("[Gateway]: RTT in us: ");
+  Serial.println(after_rtt - before_rtt);
+
+
   LoRaMessage msg = LoRa_receiveMessage(packetSize);
   // enable_timer();
   // cur_time = now();
@@ -84,6 +92,7 @@ void loop() {
       Serial.println("[Gateway]: SHOULD_BROAD");
       LoRa_gatewayTxMode();
 
+      before_rtt = micros();
       LoRa_sendGatewayPollBroadcast();
 
       // put the radio into receive mode
