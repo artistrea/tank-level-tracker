@@ -1,8 +1,11 @@
 from flask import Flask, g
 from .models import init_db
+from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
+    app.config['TRAP_HTTP_EXCEPTIONS']=True
     app.config['DATABASE'] = 'tanks.db'
     
     with app.app_context():

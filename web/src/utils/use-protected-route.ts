@@ -1,11 +1,11 @@
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import { useAuthContext } from "~/contexts/authContext";
 
 export function useProtectedRoute() {
-  const { status } = useSession();
+  const { status } = useAuthContext();
   const router = useRouter();
 
   const isClientSide = typeof window !== "undefined";
 
-  if (isClientSide && status === "unauthenticated") void router.replace("/");
+  if (isClientSide && status === "unauthorized") void router.replace("/");
 }
