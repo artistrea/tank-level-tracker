@@ -91,6 +91,60 @@ def seed():
 
     db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(2*['?'])})", [new_sample.get(var) for var in samples_parameters])
 
+
+
+
+
+    new_tank = {
+        "name": "Tanque 3",
+        "description": "Tanque 3 description",
+        "maximum_volume": 10.5,
+        "volume_danger_zone": 2,
+        "volume_alert_zone": 5,
+        "tank_base_area": 2,
+        "latitude": -47.862,
+        "longitude": -15.7657
+    }
+
+    tank_id = db.execute_db(f"INSERT INTO tanks ({', '.join(tanks_parameters)}) VALUES ({', '.join(8*['?'])})", [new_tank.get(var) for var in tanks_parameters]) 
+    new_samples = [
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 700,
+            "timetamp": "2024-09-10 10:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 700,
+            "timetamp": "2024-09-11 11:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 500,
+            "timetamp": "2024-09-12 12:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 399,
+            "timetamp": "2024-09-13 13:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 299,
+            "timetamp": "2024-09-14 14:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 199,
+            "timetamp": "2024-09-15 15:00:00"
+        },
+    ]
+
+    for new_sample in new_samples:
+        db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(2*['?'])})", [new_sample.get(var) for var in samples_parameters])
+
+
+
     print("seed executed!")
 
 
