@@ -8,7 +8,7 @@ import {
   AccordionTrigger,
 } from "~/components/accordion";
 
-import { api, type TanksWithLatestSample } from "~/utils/api";
+import { api, baseApi, type TanksWithLatestSample } from "~/utils/api";
 import { useMapWithMarkers } from "~/utils/map/use-map-with-markers";
 import { useProtectedRoute } from "~/utils/use-protected-route";
 import Link from "next/link";
@@ -93,15 +93,26 @@ export default function MapPage() {
         lat,
         long
       })
-      // TODO: API.post("/tanks", {
-      //   name,
-      //   maximumVolume,
-      //   dangerZone,
-      //   alertZone,
-      //   volume,
-      //   lat,
-      //   long
-      // }).then((response)=>response.data)
+      baseApi.post("/tanks", {
+        name: name,
+        description: name,
+        maximum_volume: maximumVolume,
+        volume_danger_zone: dangerZone,
+        volume_alert_zone: alertZone,
+        tank_base_area: 200, //TODO: como criar isso e se volume atual faz sentido perguntar
+        latitude: long, //TODO: long e lat foram invertidos, no codigo todo, inclusive funcoes to/fromLongLat 
+        longitude: lat
+      })
+      .then((res)=> {
+        baseApi.post("/samples", {
+          tank_id: res.data.id,
+          top_to_liquid_distance_in_cm: 200
+        })
+        console.log(res)
+        location.reload()
+      }
+      )
+      .catch((e)=>console.log(e))
     }
     e.preventDefault()
   }

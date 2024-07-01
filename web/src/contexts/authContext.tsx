@@ -25,7 +25,7 @@ function defaultAuthHeader(session: Sessions) {
 
 export function useAuthContext() {
   const ctx = useContext(authContext);
-  console.log("ctx", ctx);
+  // console.log("ctx", ctx);
   if (!ctx)
     throw new Error(
       "You can only call `useAuthContext` inside an `AuthContextProvider`",
@@ -67,7 +67,7 @@ export function AuthContextProvider({ children }: PropsWithChildren) {
 
   async function login(credentials: { email: string; password: string }) {
     return apiLogin(credentials).then((res) => {
-      console.log("res", res);
+      // console.log("res", res);
       setSession(res);
       setStatus("authorized");
 

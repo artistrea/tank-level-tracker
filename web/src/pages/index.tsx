@@ -9,7 +9,7 @@ export default function Home() {
 
   if (status === "authorized") void router.replace("/map");
 
-  console.log("status", status);
+  // console.log("status", status);
 
   return (
     <>

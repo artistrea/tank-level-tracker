@@ -70,7 +70,7 @@ class TanksController:
 
     @bp.route("/tanks", methods = ["GET"])
     def getAll():
-        auth_service.authorize_request(request, "read", "tank")
+        #auth_service.authorize_request(request, "read", "tank")
         tanks = db.query_db("""
             SELECT  t.*,
                     s.top_to_liquid_distance_in_cm as latest_sample_top_to_liquid_distance_in_cm,
@@ -102,7 +102,7 @@ class TanksController:
 
     @bp.route("/tanks", methods = ["POST"])
     def create_tank():
-        auth_service.authorize_request(request, "create", "tank")
+        #auth_service.authorize_request(request, "create", "tank")
         data = request.json
 
         if not check(create_tank_schema, data):
@@ -153,7 +153,7 @@ class TanksController:
 class SamplesController:
     @bp.route("/samples", methods = ["POST"])
     def create_sample():
-        auth_service.authorize_request(request, "create", "sample")
+        #auth_service.authorize_request(request, "create", "sample")
         data = request.json
 
         if not check(create_samples_schema, data):
