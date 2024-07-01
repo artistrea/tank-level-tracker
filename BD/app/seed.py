@@ -47,33 +47,58 @@ def seed():
     new_samples = [
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 500,
+            "top_to_liquid_distance_in_cm": 0,
+            "timestamp": "2024-05-29 09:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 0,
+            "timestamp": "2024-05-30 09:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 0,
             "timestamp": "2024-06-01 09:00:00"
         },
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 500,
+            "top_to_liquid_distance_in_cm": 0,
             "timestamp": "2024-06-01 10:00:00"
         },
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 400,
+            "top_to_liquid_distance_in_cm": 100,
             "timestamp": "2024-06-01 11:00:00"
         },
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 300,
+            "top_to_liquid_distance_in_cm": 200,
             "timestamp": "2024-06-01 12:00:00"
         },
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 200,
+            "top_to_liquid_distance_in_cm": 300,
             "timestamp": "2024-06-01 13:00:00"
         },
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 190,
-            "timestamp": "2024-06-01 14:00:00"
+            "top_to_liquid_distance_in_cm": 300,
+            "timestamp": "2024-06-02 13:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 300,
+            "timestamp": "2024-06-03 13:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 300,
+            "timestamp": "2024-06-04 13:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 500,
+            "timestamp": "2024-06-04 14:00:00"
         },
     ]
 

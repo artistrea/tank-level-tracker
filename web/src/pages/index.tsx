@@ -21,7 +21,7 @@ export default function Home() {
       <div className="flex min-h-screen flex-col">
         <Navbar />
         <main className="flex flex-1 flex-col items-center justify-center bg-zinc-800">
-          Faça login
+          <h1 className="mb-10 text-4xl">Grupo LAG</h1>
         </main>
       </div>
     </>

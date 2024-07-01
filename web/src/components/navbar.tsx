@@ -48,12 +48,12 @@ export function Navbar() {
           Sair
         </button>
       ) : (
-        <a
+        <Link
           href="login"
           className="ml-auto px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
         >
           Fazer login
-        </a>
+        </Link>
       )}
     </nav>
   );
