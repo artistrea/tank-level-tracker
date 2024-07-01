@@ -146,7 +146,7 @@ export const columns: ColumnDef<TanksWithLatestSample>[] = [
     cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
   },
   {
-    id: "Data da Última Amostra",
+    id: "latest_sample_timestamp",
     accessorKey: "latest_sample_timestamp",
     header: ({ column }) => {
       return (

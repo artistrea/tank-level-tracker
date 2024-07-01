@@ -101,7 +101,7 @@ class TanksController:
 
     @bp.route("/tanks", methods = ["POST"])
     def create_tank():
-        #auth_service.authorize_request(request, "create", "tank")
+        auth_service.authorize_request(request, "create", "tank")
         data = request.json
 
         if not check(create_tank_schema, data):
@@ -153,6 +153,15 @@ class TanksController:
 
 
 class SamplesController:
+
+    @bp.route("/samples", methods = ["GET"])
+    def get_all_samples():
+        auth_service.authorize_request(request, "read", "sample")
+        tanks = db.query_db(""" SELECT * FROM samples; """)
+
+        return jsonify([dict(row) for row in tanks]), 200
+
+
     @bp.route("/samples", methods = ["POST"])
     def create_sample():
         #auth_service.authorize_request(request, "create", "sample")

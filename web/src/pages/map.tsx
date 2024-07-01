@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useEffect, useRef, useState } from "react";
+import { EventHandler, FormEvent, useEffect, useRef, useState } from "react";
 import { Navbar } from "~/components/navbar";
 import {
   Accordion,
@@ -14,16 +14,8 @@ import { useProtectedRoute } from "~/utils/use-protected-route";
 import Link from "next/link";
 import { Skeleton } from "~/components/skeleton";
 import { toLonLat } from "ol/proj";
-import { MapBrowserEvent } from "ol";
-import { tree } from "next/dist/build/templates/app-page";
-
-function getVolume(t: TanksWithLatestSample) {
-  const maxHeight = (t.maximum_volume / t.tank_base_area) * 100;
-
-  const liquidHeight = maxHeight - t.latest_sample_top_to_liquid_distance_in_cm;
-
-  return (liquidHeight / 100) * t.tank_base_area;
-}
+import { type MapBrowserEvent } from "ol";
+import { getVolume } from "~/utils/get-volume";
 
 function pointsToClassifiedPointsMapper(
   points: undefined | TanksWithLatestSample[],
@@ -52,16 +44,15 @@ export default function MapPage() {
   useProtectedRoute();
   const mapRef = useRef<HTMLDivElement>(null);
 
-  const { data: points, isLoading, refetch } =
+  const { data: points, isLoading } =
     api.tank.getAllWithLatestSample.useQuery();
   const mappedPoints = pointsToClassifiedPointsMapper(points);
 
-  
   const [selectedId, setSelectedId] = useState(points?.[0]?.id);
 
-  const [editEnable, setEditEnable] = useState(false)
+  const [editEnable, setEditEnable] = useState(false);
 
-  const tempId:number = -1
+  const tempId = -1;
   const [name, setTankName] = useState("");
   const [lat, setTankLat] = useState(0);
   const [long, setTankLong] = useState(0);
@@ -70,58 +61,58 @@ export default function MapPage() {
   const [alertZone, setTankAlertZone] = useState(0);
   const [tankBaseArea, setTankBaseArea] = useState(0);
 
-  const handleCreate = (e:any) => {
-    if(!name &&
-      !maximumVolume &&
-      !dangerZone &&
-      !alertZone &&
-      !tankBaseArea
-      ){
-      alert("Preencha todos os campos")
-    }else if(
-      !lat &&
-      !long
-      ){
-      alert("Selecione uma localização no mapa")  
-    }else{
-      baseApi.post("/tanks", {
-        name: name,
-        description: name,
-        maximum_volume: maximumVolume,
-        volume_danger_zone: dangerZone,
-        volume_alert_zone: alertZone,
-        tank_base_area: tankBaseArea, //TODO: como criar isso e se volume atual faz sentido perguntar
-        latitude: long, //TODO: long e lat foram invertidos, no codigo todo, inclusive funcoes to/fromLongLat 
-        longitude: lat
-      })
-      .then((res)=> {
-        baseApi.post("/samples", {
-          tank_id: res.data.id,
-          top_to_liquid_distance_in_cm: 0 //OBS: o tanque adicionado deve estar cheio
+  const handleCreate: EventHandler<FormEvent> = (e) => {
+    if (!name && !maximumVolume && !dangerZone && !alertZone && !tankBaseArea) {
+      alert("Preencha todos os campos");
+    } else if (!lat && !long) {
+      alert("Selecione uma localização no mapa");
+    } else {
+      baseApi
+        .post("/tanks", {
+          name: name,
+          description: name,
+          maximum_volume: maximumVolume,
+          volume_danger_zone: dangerZone,
+          volume_alert_zone: alertZone,
+          tank_base_area: tankBaseArea, //TODO: como criar isso e se volume atual faz sentido perguntar
+          latitude: long, //TODO: long e lat foram invertidos, no codigo todo, inclusive funcoes to/fromLongLat
+          longitude: lat,
         })
-        console.log(res)
-        location.reload()
-        //refetch
-      }
-      )
-      .catch((e)=>console.log(e))
+        .then((res) => {
+          baseApi
+            .post("/samples", {
+              tank_id: res.data.id,
+              top_to_liquid_distance_in_cm: 0, //OBS: o tanque adicionado deve estar cheio
+            })
+            .then(() => {
+              console.log(res);
+              location.reload();
+            });
+          //refetch
+        })
+        .catch((e) => console.log(e));
     }
-    e.preventDefault()
-  }
+    e.preventDefault();
+  };
 
-
-  useMapWithMarkers(mappedPoints, mapRef, selectedId, (ints:number[]) => {
-      setSelectedId(ints[0])
-    }, editEnable ? 
-      (e:MapBrowserEvent<any>) => {
-        let [newLong, newLat]:number[] = toLonLat(e.coordinate)
-        setTankLat(newLat as number);
-        setTankLong(newLong as number);
-        setSelectedId(tempId) // deixar o marcador temporário em destaque
-        e.preventDefault()
-        return tempId
-  }   : undefined);
-
+  useMapWithMarkers(
+    mappedPoints,
+    mapRef,
+    selectedId,
+    (ints: number[]) => {
+      setSelectedId(ints[0]);
+    },
+    editEnable
+      ? (e: MapBrowserEvent<any>) => {
+          let [newLong, newLat]: number[] = toLonLat(e.coordinate);
+          setTankLat(newLat as number);
+          setTankLong(newLong as number);
+          setSelectedId(tempId); // deixar o marcador temporário em destaque
+          e.preventDefault();
+          return tempId;
+        }
+      : undefined,
+  );
 
   return (
     <>
@@ -141,7 +132,7 @@ export default function MapPage() {
               value={selectedId?.toString()}
               onValueChange={(v) => {
                 setSelectedId(Number(v));
-                setEditEnable(v===tempId.toString());
+                setEditEnable(v === tempId.toString());
               }}
             >
               {!isLoading &&
@@ -155,105 +146,115 @@ export default function MapPage() {
                     <AccordionTrigger>{p.name}</AccordionTrigger>
                     <AccordionContent className="flex flex-col">
                       {p.current_volume}/{p.maximum_volume} litros
-                      <Link href="/map" className="w-max place-self-end px-2">
+                      <Link
+                        href={`/tanks/chart?includeTankId=${p.id}`}
+                        className="w-max place-self-end px-2"
+                      >
                         Ver Histórico
                       </Link>
                     </AccordionContent>
                   </AccordionItem>
                 ))}
-                <AccordionItem
-                    className="rounded border-l-2 border-l-white-600 p-2"
-                    key={tempId}
-                    value={tempId.toString()}
-                  >
-                    <AccordionTrigger>{"+ Novo tanque"}</AccordionTrigger>
-                    <AccordionContent className="flex flex-col">
-                    <form onSubmit={handleCreate}>
-                        <div className="m-1">
-                            <label className="m-1">
-                                Nome:
-                                <input
-                                    className="bg-zinc-800 border-b m-1"
-                                    type="text"
-                                    name="nome"
-                                    value={name}
-                                    onChange={(e)=>setTankName(e.target.value)}
-                                />
-                            </label>
-                        </div>
-                        <div className="m-1">
-                            <label className="m-1">
-                                Volume Máximo(litros):
-                                <input
-                                    className="bg-zinc-800 border-b m-1"
-                                    type="number"
-                                    min="0"
-                                    name="volumeMaximo"
-                                    defaultValue={maximumVolume}
-                                    onChange={(e)=>setTankMaximumVolume(parseInt(e.target.value))}
-                                />
-                            </label>
-                        </div>
-                        <div className="m-1">
-                            <label className="m-1">
-                                Zona de alerta(litros):
-                                <input
-                                    className="bg-zinc-800 border-b m-1"
-                                    type="number"
-                                    min="0"
-                                    max={maximumVolume}
-                                    name="zonaAlerta"
-                                    value={alertZone}
-                                    onChange={(e)=>setTankAlertZone(parseInt(e.target.value))}
-                                />
-                            </label>
-                        </div>
-                        <div className="m-1">
-                            <label className="m-1">
-                                Zona de Perigo(litros):
-                                <input
-                                    className="bg-zinc-800 border-b m-1"
-                                    type="number"
-                                    min="0"
-                                    max={alertZone}
-                                    name="zonaPerigo"
-                                    value={dangerZone}
-                                    onChange={(e)=>setTankDangerZone(parseInt(e.target.value))}
-                                />
-                            </label>
-                        </div>
-                        <div className="m-1">
-                            <label className="m-1">
-                                Área da Base do tanque(m²):
-                                <input
-                                    className="bg-zinc-800 border-b m-1"
-                                    type="number"
-                                    min="0"
-                                    name="tank_base_area"
-                                    value={tankBaseArea}
-                                    onChange={(e)=>setTankBaseArea(parseInt(e.target.value))}
-                                />
-                            </label>
-                        </div>
-                        <div className="m-1">
-                            <label className="m-1">
-                                Localização:
-                                <input
-                                    className="bg-zinc-800 m-1"
-                                    disabled={true}
-                                    type="text"
-                                    name="localização"
-                                    value={"Selecione no mapa"}
-                                />
-                            </label>
-                        </div>
-                        <button className="p-1 mt-3 bg-zinc-700"
-                          type="submit">
-                            Criar
-                          </button>
-                    </form>
-                    </AccordionContent>
-                  </AccordionItem>
+              <AccordionItem
+                className="border-l-white-600 rounded border-l-2 p-2"
+                key={tempId}
+                value={tempId.toString()}
+              >
+                <AccordionTrigger>{"+ Novo tanque"}</AccordionTrigger>
+                <AccordionContent className="flex flex-col">
+                  <form onSubmit={handleCreate}>
+                    <div className="m-1">
+                      <label className="m-1">
+                        Nome:
+                        <input
+                          className="m-1 border-b bg-zinc-800"
+                          type="text"
+                          name="nome"
+                          value={name}
+                          onChange={(e) => setTankName(e.target.value)}
+                        />
+                      </label>
+                    </div>
+                    <div className="m-1">
+                      <label className="m-1">
+                        Volume Máximo(litros):
+                        <input
+                          className="m-1 border-b bg-zinc-800"
+                          type="number"
+                          min="0"
+                          name="volumeMaximo"
+                          defaultValue={maximumVolume}
+                          onChange={(e) =>
+                            setTankMaximumVolume(parseInt(e.target.value))
+                          }
+                        />
+                      </label>
+                    </div>
+                    <div className="m-1">
+                      <label className="m-1">
+                        Zona de alerta(litros):
+                        <input
+                          className="m-1 border-b bg-zinc-800"
+                          type="number"
+                          min="0"
+                          max={maximumVolume}
+                          name="zonaAlerta"
+                          value={alertZone}
+                          onChange={(e) =>
+                            setTankAlertZone(parseInt(e.target.value))
+                          }
+                        />
+                      </label>
+                    </div>
+                    <div className="m-1">
+                      <label className="m-1">
+                        Zona de Perigo(litros):
+                        <input
+                          className="m-1 border-b bg-zinc-800"
+                          type="number"
+                          min="0"
+                          max={alertZone}
+                          name="zonaPerigo"
+                          value={dangerZone}
+                          onChange={(e) =>
+                            setTankDangerZone(parseInt(e.target.value))
+                          }
+                        />
+                      </label>
+                    </div>
+                    <div className="m-1">
+                      <label className="m-1">
+                        Área da Base do tanque(m²):
+                        <input
+                          className="m-1 border-b bg-zinc-800"
+                          type="number"
+                          min="0"
+                          name="tank_base_area"
+                          value={tankBaseArea}
+                          onChange={(e) =>
+                            setTankBaseArea(parseInt(e.target.value))
+                          }
+                        />
+                      </label>
+                    </div>
+                    <div className="m-1">
+                      <label className="m-1">
+                        Localização:
+                        <input
+                          className="m-1 bg-zinc-800"
+                          disabled={true}
+                          type="text"
+                          name="localização"
+                          value={"Selecione no mapa"}
+                        />
+                      </label>
+                    </div>
+                    <button className="mt-3 bg-zinc-700 p-1" type="submit">
+                      Criar
+                    </button>
+                  </form>
+                </AccordionContent>
+              </AccordionItem>
               {isLoading &&
                 Array.from({ length: 8 })?.map((p, i) => (
                   <AccordionItem

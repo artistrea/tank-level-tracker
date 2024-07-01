@@ -9,13 +9,29 @@ export function Navbar() {
   return (
     <nav className="flex bg-zinc-900/80">
       {session && (
-        <ul>
+        <ul className="flex">
           <li className="h-full p-0">
             <Link
               href={"/map"}
               className="flex h-full items-center px-10 font-semibold transition hover:bg-white/20"
             >
               Ver no mapa
+            </Link>
+          </li>
+          <li className="h-full p-0">
+            <Link
+              href={"/tanks/chart"}
+              className="flex h-full items-center px-10 font-semibold transition hover:bg-white/20"
+            >
+              Ver histórico
+            </Link>
+          </li>
+          <li className="h-full p-0">
+            <Link
+              href={"#"}
+              className="flex h-full cursor-not-allowed items-center px-10  font-semibold opacity-50 transition hover:bg-white/20"
+            >
+              Analisar tanques
             </Link>
           </li>
         </ul>

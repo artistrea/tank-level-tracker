@@ -25,7 +25,8 @@ tanks_parameters = [
 
 samples_parameters = [ 
     "tank_id",
-    "top_to_liquid_distance_in_cm"
+    "top_to_liquid_distance_in_cm",
+    "timestamp"
 ]
 
 def seed():
@@ -46,32 +47,38 @@ def seed():
     new_samples = [
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 500
+            "top_to_liquid_distance_in_cm": 500,
+            "timestamp": "2024-06-01 09:00:00"
         },
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 500
+            "top_to_liquid_distance_in_cm": 500,
+            "timestamp": "2024-06-01 10:00:00"
         },
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 400
+            "top_to_liquid_distance_in_cm": 400,
+            "timestamp": "2024-06-01 11:00:00"
         },
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 300
+            "top_to_liquid_distance_in_cm": 300,
+            "timestamp": "2024-06-01 12:00:00"
         },
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 200
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 13:00:00"
         },
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 190
+            "top_to_liquid_distance_in_cm": 190,
+            "timestamp": "2024-06-01 14:00:00"
         },
     ]
 
     for new_sample in new_samples:
-        db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(2*['?'])})", [new_sample.get(var) for var in samples_parameters])
+        db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(3*['?'])})", [new_sample.get(var) for var in samples_parameters])
 
     new_tank = {
         "name": "Tanque 2",
@@ -86,10 +93,11 @@ def seed():
     tank_id = db.execute_db(f"INSERT INTO tanks ({', '.join(tanks_parameters)}) VALUES ({', '.join(8*['?'])})", [new_tank.get(var) for var in tanks_parameters]) 
     new_sample = {
         "tank_id": tank_id,
-        "top_to_liquid_distance_in_cm": 200
+        "top_to_liquid_distance_in_cm": 200,
+        "timestamp": "2024-06-01 09:00:00"
     }
 
-    db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(2*['?'])})", [new_sample.get(var) for var in samples_parameters])
+    db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(3*['?'])})", [new_sample.get(var) for var in samples_parameters])
 
     print("seed executed!")
 

@@ -59,6 +59,18 @@ export const api = {
       },
     },
   },
+  sample: {
+    getAll: {
+      useQuery() {
+        return useQuery({
+          queryKey: ["samples", "getAll"],
+          async queryFn() {
+            return baseApi.get<Samples[]>("/samples").then((res) => res.data);
+          },
+        });
+      },
+    },
+  },
   auth: {
     login: {
       useMutation() {

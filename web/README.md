@@ -10,13 +10,6 @@ If you don't have it, install pnpm through npm:
 npm i pnpm -g
 ```
 
-Then, begin by creating the database/pushing the schema with
-
-```bash
-# run this only when db schema needs updating
-pnpm db:push
-```
-
 And, every time you need, you can run the app locally with:
 
 ```bash
@@ -30,11 +23,7 @@ We try to keep this project as simple as possible, so you can start with just th
 If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
 
 - [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
 - [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
 
 ## Learn More
 
