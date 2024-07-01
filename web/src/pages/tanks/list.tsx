@@ -1,9 +1,9 @@
 import Head from "next/head";
 import { Navbar } from "~/components/navbar";
-import { TanksWithLatestSample, api } from "~/utils/api";
+import { type TanksWithLatestSample, api } from "~/utils/api";
 import { useProtectedRoute } from "~/utils/use-protected-route";
 
-export default function Home() {
+export default function TanksList() {
   useProtectedRoute();
 
   const { data: points, isLoading } =
@@ -19,7 +19,7 @@ export default function Home() {
       <div className="flex min-h-screen flex-col">
         <Navbar />
         <main className="flex flex-1 flex-col items-center justify-center bg-zinc-800">
-          Faça login
+          <DataTableDemo />
         </main>
       </div>
     </>
@@ -74,6 +74,20 @@ const data: (TanksWithLatestSample & {
     volume_danger_zone: 3,
     status: "normal",
   },
+  {
+    id: 2,
+    description: "Tanque de combustível que fica em bla",
+    latest_sample_timestamp: "2024-06-02",
+    latest_sample_top_to_liquid_distance_in_cm: 300,
+    latitude: -14.7,
+    longitude: -15,
+    maximum_volume: 11,
+    name: "Tanque 2",
+    tank_base_area: 2,
+    volume_alert_zone: 5,
+    volume_danger_zone: 3,
+    status: "normal",
+  },
 ];
 
 export const columns: ColumnDef<TanksWithLatestSample>[] = [
@@ -86,14 +100,14 @@ export const columns: ColumnDef<TanksWithLatestSample>[] = [
           (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
+        aria-label="Selecione todos"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
+        aria-label="Selecione a linha"
       />
     ),
     enableSorting: false,
@@ -101,7 +115,17 @@ export const columns: ColumnDef<TanksWithLatestSample>[] = [
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: ({ column }) => {
+      return (
+        <button
+          className="flex justify-center"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </button>
+      );
+    },
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("status")}</div>
     ),
@@ -111,6 +135,7 @@ export const columns: ColumnDef<TanksWithLatestSample>[] = [
     header: ({ column }) => {
       return (
         <button
+          className="flex justify-center"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Nome
@@ -121,16 +146,28 @@ export const columns: ColumnDef<TanksWithLatestSample>[] = [
     cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
   },
   {
-    accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
+    id: "Data da Última Amostra",
+    accessorKey: "latest_sample_timestamp",
+    header: ({ column }) => {
+      return (
+        <button
+          className="ml-auto flex"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Data da Última Amostra
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </button>
+      );
+    },
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
+      const amount = row.getValue("latest_sample_timestamp");
 
       // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
+      const formatted = !amount
+        ? "-"
+        : new Intl.DateTimeFormat("pt-BR", {
+            dateStyle: "full",
+          }).format(new Date(String(amount)));
 
       return <div className="text-right font-medium">{formatted}</div>;
     },
@@ -163,7 +200,7 @@ export function DataTableDemo() {
   });
 
   return (
-    <div className="w-full">
+    <div className="w-full px-8">
       <div className="flex items-center py-4">
         <input
           placeholder="Filtre por nome do tanque..."
@@ -175,8 +212,8 @@ export function DataTableDemo() {
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="ml-auto">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+            <button className="ml-auto flex items-end">
+              Colunas <ChevronDown className="ml-2 h-4 w-4" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

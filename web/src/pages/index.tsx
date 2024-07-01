@@ -4,10 +4,12 @@ import { Navbar } from "~/components/navbar";
 import { useAuthContext } from "~/contexts/authContext";
 
 export default function Home() {
-  const { session } = useAuthContext();
+  const { status } = useAuthContext();
   const router = useRouter();
 
-  if (session) void router.replace("/map");
+  if (status === "authorized") void router.replace("/map");
+
+  console.log("status", status);
 
   return (
     <>

@@ -70,7 +70,7 @@ class TanksController:
 
     @bp.route("/tanks", methods = ["GET"])
     def getAll():
-        # auth_service.authorize_request(request, "read", "tank")
+        auth_service.authorize_request(request, "read", "tank")
         tanks = db.query_db("""
             SELECT  t.*,
                     s.top_to_liquid_distance_in_cm as latest_sample_top_to_liquid_distance_in_cm,
@@ -182,8 +182,8 @@ class AuthController:
     @bp.route("/auth/login", methods=["POST"])
     def login():
         data = request.json
-        email = data.get('email')
-        password = data.get('password')
+        email = str(data.get('email'))
+        password = str(data.get('password'))
         
         if not email or not password:
             raise UnprocessableEntityException("Login needs 'email' and 'password'!")
