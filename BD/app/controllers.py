@@ -80,8 +80,7 @@ class TanksController:
                     *,
                     ROW_NUMBER() OVER (PARTITION BY tank_id ORDER BY timestamp) as row_number
                 FROM samples
-            ) s on s.tank_id = t.id
-            WHERE s.row_number = 1;
+            ) s on s.tank_id = t.id AND s.row_number = 1;
                             """)
 
         return jsonify([dict(row) for row in tanks]), 200
