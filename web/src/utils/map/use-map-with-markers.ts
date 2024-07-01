@@ -1,8 +1,15 @@
-import { type RefObject, useEffect, useRef } from "react";
+import {
+  type RefObject,
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { type MapBrowserEvent, Feature } from "ol";
 import "ol/ol.css";
-import { fromLonLat } from "ol/proj";
+import { fromLonLat, toLonLat } from "ol/proj";
 import { Point } from "ol/geom";
 import Style from "ol/style/Style";
 import Icon from "ol/style/Icon";
@@ -24,7 +31,8 @@ const prio = { danger: 2, warning: 1, normal: 0 };
 const { map, markersLayer } = buildMapLayers();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type OnClick = (event: MapBrowserEvent<any>, intersectsIds: number[]) => void;
+type OnClick = (event: MapBrowserEvent<any>) => number;
+type onSelect = (intersectsIds: number[]) => void;
 
 export function useMapWithMarkers(
   markers:
@@ -38,9 +46,13 @@ export function useMapWithMarkers(
       }[],
   mapRef: RefObject<HTMLDivElement>,
   selectedMarkerId: number | undefined,
+  onSelect: onSelect,
   onClick?: OnClick,
 ) {
   const hasRenderedMap = useRef(false);
+
+  const [newLocation, setNewLocation] = useState({})
+
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,11 +65,15 @@ export function useMapWithMarkers(
           // setSelectedMarkerId((prevId) => (prevId === id ? undefined : id));
         }
       });
-      if (onClick) {
-        onClick(event, intersects);
+      if(onClick){
+        let tempId = onClick(event);
+        setNewLocation({name: "Nova localização", id:tempId, lat:toLonLat(event.coordinate)[0],long:toLonLat(event.coordinate)[1]})
+      }else{
+        setNewLocation({});
+        onSelect(intersects);
       }
+      event.preventDefault();
     };
-
     map?.on("click", onClickCallback);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,10 +108,11 @@ export function useMapWithMarkers(
   }, [onClick]);
 
   useEffect(() => {
+    let locations = newLocation ? markers?.concat(newLocation) : markers
     markersLayer?.setSource(
       new VectorSource({
         features:
-          markers?.map((p) => {
+          locations?.map((p) => {
             const feature = new Feature({
               geometry: new Point(fromLonLat([p.lat, p.long])),
             });
