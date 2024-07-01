@@ -20,6 +20,10 @@ class ForbiddenException(HTTPException):
     def __init__(self, message: str = "Forbidden") -> None:
         super().__init__(403, message)
 
+class NotFoundException(HTTPException):
+    def __init__(self, message: str = "Not Found") -> None:
+        super().__init__(404, message)
+
 class SessionExpiredException(HTTPException):
     def __init__(self, message: str = "Session Expired") -> None:
         super().__init__(440, message)

@@ -1,4 +1,4 @@
-from .exceptions import HTTPException, UnprocessableEntityException, InternalServerErrorException
+from .exceptions import HTTPException, UnprocessableEntityException, InternalServerErrorException, NotFoundException
 from flask import Blueprint, request, jsonify, make_response
 from .models import DB
 from .services.auth_service import AuthService
@@ -70,7 +70,7 @@ class TanksController:
 
     @bp.route("/tanks", methods = ["GET"])
     def getAll():
-        #auth_service.authorize_request(request, "read", "tank")
+        auth_service.authorize_request(request, "read", "tank")
         tanks = db.query_db("""
             SELECT  t.*,
                     s.top_to_liquid_distance_in_cm as latest_sample_top_to_liquid_distance_in_cm,
@@ -95,7 +95,7 @@ class TanksController:
         if tank:
             return jsonify(dict(tank)), 200
         
-        return jsonify({"error": "Tank not found!"}), 404
+        raise NotFoundException()
     
 
 
@@ -107,10 +107,12 @@ class TanksController:
         if not check(create_tank_schema, data):
             return jsonify({"message": "It's not possible to create a tank without 'name', 'description', 'maximum_volume', 'volume_danger_zone', 'volume_alert_zone', 'tank_base_area', 'latitude', 'longitude'!"}), 400
 
-        if data.get("id") is not None and data.get("id") > 255:
-            return jsonify({"message": "Tank ID must be less than or equal to 255."}), 400
-
         tank_id = db.execute_db(f"INSERT INTO tanks ({', '.join(tanks_parameters)}) VALUES ({', '.join(8*['?'])})", [data.get(var) for var in tanks_parameters]) 
+
+        if tank_id is not None and tank_id > 255:
+            db.execute_db("DELETE FROM tanks WHERE id = ?", [tank_id])
+            raise UnprocessableEntityException("Tank ID must be less than or equal to 255.")
+
         created_tank = db.query_db("SELECT * FROM tanks WHERE id = ?", [tank_id], one=True)
 
         return jsonify(dict(created_tank)), 201
@@ -123,12 +125,12 @@ class TanksController:
         data = request.json
 
         if not check(create_tank_schema, data):
-            return jsonify({"message": "It's not possible to update the tank without 'name', 'description', 'maximum_volume', 'volume_danger_zone', 'volume_alert_zone', 'tank_base_area', 'latitude', 'longitude'!"}), 400
+            raise UnprocessableEntityException("It's not possible to update the tank without 'name', 'description', 'maximum_volume', 'volume_danger_zone', 'volume_alert_zone', 'tank_base_area', 'latitude', 'longitude'!")
 
         tank = db.query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
 
         if not tank:
-            return jsonify({"error": "Tank not found!"}), 404
+            raise NotFoundException()
 
         question_marks = ','.join([f"{var} = ?" for var in tanks_parameters])
         db.execute_db(f"UPDATE tanks SET {question_marks} WHERE id = ?", [data.get(var) for var in tanks_parameters]+[id])
@@ -144,7 +146,7 @@ class TanksController:
         tank = db.query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
 
         if not tank:
-            return jsonify({"error": "Tank not found!"}), 404
+            raise NotFoundException()
         
         db.execute_db("DELETE FROM tanks WHERE id = ?", [id])
 
@@ -164,11 +166,11 @@ class SamplesController:
 
     @bp.route("/samples", methods = ["POST"])
     def create_sample():
-        #auth_service.authorize_request(request, "create", "sample")
+        auth_service.authorize_request(request, "create", "sample")
         data = request.json
 
         if not check(create_samples_schema, data):
-            return jsonify({"message": "Invalid Data!"}), 400
+            raise UnprocessableEntityException("Invalid Data!")
 
         sample_id = db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(2*['?'])})", [data.get(var) for var in samples_parameters])
         created_sample = db.query_db("SELECT * FROM samples WHERE id = ?", [sample_id], one=True)
@@ -183,11 +185,14 @@ class SamplesController:
         sample = db.query_db("SELECT * FROM samples WHERE id = ?", [id], one=True)
 
         if not sample:
-            return jsonify({"error": "Sample not found!"}), 404
+            raise NotFoundException("Sample not found!")
         
         db.execute_db("DELETE FROM samples WHERE id = ?", [id])
 
         return jsonify({"message": "Sample data deleted successfully!"}), 200
+
+
+
 
 class AuthController:
     @bp.route("/auth/login", methods=["POST"])
@@ -205,8 +210,7 @@ class AuthController:
 
     @bp.route("/auth/create-user", methods=["POST"])
     def create_user():
-        # QUANDO A SEED FUNFAR A GENTE TIRA ISSAQUI
-        # auth_service.authorize_request(request, "create", "user")
+        auth_service.authorize_request(request, "create", "user")
         data = request.json
         email = data.get('email')
         password = data.get('password')
