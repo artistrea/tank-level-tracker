@@ -52,7 +52,7 @@ export default function MapPage() {
   useProtectedRoute();
   const mapRef = useRef<HTMLDivElement>(null);
 
-  const { data: points, isLoading } =
+  const { data: points, isLoading, refetch } =
     api.tank.getAllWithLatestSample.useQuery();
   const mappedPoints = pointsToClassifiedPointsMapper(points);
 
@@ -101,6 +101,7 @@ export default function MapPage() {
         })
         console.log(res)
         location.reload()
+        //refetch
       }
       )
       .catch((e)=>console.log(e))
