@@ -21,10 +21,11 @@ class AuthService:
             ):
         session = self.get_session_from_req(request)
 
-        if self.get_current_user(session["session_id"], session["user_id"]):
+        cur_user = self.get_current_user(session["session_id"], session["user_id"])
+        if cur_user:
             # could make more complex checks.
             # role based authorization, for example
-            if self.get_current_user()["email"] == "admin@gmail.com":
+            if cur_user["email"] == "admin@gmail.com":
                 return
 
         raise ForbiddenException(f"You don't have permission to {action} {resource}!")
@@ -69,7 +70,7 @@ class AuthService:
         return current_user
 
 
-    def login(self, email, password):
+    def login(self, email: str, password: str):
         user = self.db.query_db("SELECT * FROM users WHERE email = $1", [email], one=True)
         if not user:
             raise UnauthorizedException("Wrong credentials used!")
@@ -79,17 +80,17 @@ class AuthService:
         if not credential:
             raise UnauthorizedException("There are no credentials for this user! Contact an admin for help.")
 
-        if not bcrypt.checkpw(password.encode('utf-8'), credential["hashed_password"].encode('utf-8')):
+        if not bcrypt.checkpw(password.encode('utf-8'), credential["hashed_password"]):
             raise UnauthorizedException("Wrong credentials used!")
 
-        session_id = self.db.execute_db("INSERT INTO sessions (id, user_id) VALUES ($1, $2)",
-            [str(uuid.uuid4()), user["id"]]
+        session_id =str(uuid.uuid4())
+        self.db.execute_db("INSERT INTO sessions (id, user_id) VALUES ($1, $2)",
+            [session_id, user["id"]]
         )
 
-        return {
-            "session_id": session_id,
-            "user_id": user["id"],
-        }
+        session = self.db.query_db("SELECT * FROM sessions WHERE id = $1", [session_id], one=True)
+
+        return session
 
 
     def create_user(self, email, password, name):

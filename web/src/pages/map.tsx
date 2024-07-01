@@ -8,7 +8,7 @@ import {
   AccordionTrigger,
 } from "~/components/accordion";
 
-import { api, type TanksWithLatestSample } from "~/utils/api";
+import { api, baseApi, type TanksWithLatestSample } from "~/utils/api";
 import { useMapWithMarkers } from "~/utils/map/use-map-with-markers";
 import { useProtectedRoute } from "~/utils/use-protected-route";
 import Link from "next/link";
@@ -52,7 +52,7 @@ export default function MapPage() {
   useProtectedRoute();
   const mapRef = useRef<HTMLDivElement>(null);
 
-  const { data: points, isLoading } =
+  const { data: points, isLoading, refetch } =
     api.tank.getAllWithLatestSample.useQuery();
   const mappedPoints = pointsToClassifiedPointsMapper(points);
 
@@ -68,14 +68,14 @@ export default function MapPage() {
   const [maximumVolume, setTankMaximumVolume] = useState(0);
   const [dangerZone, setTankDangerZone] = useState(0);
   const [alertZone, setTankAlertZone] = useState(0);
-  const [volume, setTankVolume] = useState(0);
+  const [tankBaseArea, setTankBaseArea] = useState(0);
 
   const handleCreate = (e:any) => {
     if(!name &&
       !maximumVolume &&
       !dangerZone &&
       !alertZone &&
-      !volume
+      !tankBaseArea
       ){
       alert("Preencha todos os campos")
     }else if(
@@ -84,24 +84,27 @@ export default function MapPage() {
       ){
       alert("Selecione uma localização no mapa")  
     }else{
-      console.log({
-        name,
-        maximumVolume,
-        dangerZone,
-        alertZone,
-        volume,
-        lat,
-        long
+      baseApi.post("/tanks", {
+        name: name,
+        description: name,
+        maximum_volume: maximumVolume,
+        volume_danger_zone: dangerZone,
+        volume_alert_zone: alertZone,
+        tank_base_area: tankBaseArea, //TODO: como criar isso e se volume atual faz sentido perguntar
+        latitude: long, //TODO: long e lat foram invertidos, no codigo todo, inclusive funcoes to/fromLongLat 
+        longitude: lat
       })
-      // TODO: API.post("/tanks", {
-      //   name,
-      //   maximumVolume,
-      //   dangerZone,
-      //   alertZone,
-      //   volume,
-      //   lat,
-      //   long
-      // }).then((response)=>response.data)
+      .then((res)=> {
+        baseApi.post("/samples", {
+          tank_id: res.data.id,
+          top_to_liquid_distance_in_cm: 0 //OBS: o tanque adicionado deve estar cheio
+        })
+        console.log(res)
+        location.reload()
+        //refetch
+      }
+      )
+      .catch((e)=>console.log(e))
     }
     e.preventDefault()
   }
@@ -180,7 +183,7 @@ export default function MapPage() {
                         </div>
                         <div className="m-1">
                             <label className="m-1">
-                                Volume Máximo:
+                                Volume Máximo(litros):
                                 <input
                                     className="bg-zinc-800 border-b m-1"
                                     type="number"
@@ -193,7 +196,7 @@ export default function MapPage() {
                         </div>
                         <div className="m-1">
                             <label className="m-1">
-                                Zona de alerta:
+                                Zona de alerta(litros):
                                 <input
                                     className="bg-zinc-800 border-b m-1"
                                     type="number"
@@ -207,7 +210,7 @@ export default function MapPage() {
                         </div>
                         <div className="m-1">
                             <label className="m-1">
-                                Zona de Perigo:
+                                Zona de Perigo(litros):
                                 <input
                                     className="bg-zinc-800 border-b m-1"
                                     type="number"
@@ -221,15 +224,14 @@ export default function MapPage() {
                         </div>
                         <div className="m-1">
                             <label className="m-1">
-                                Volume Atual:
+                                Área da Base do tanque(m²):
                                 <input
                                     className="bg-zinc-800 border-b m-1"
                                     type="number"
                                     min="0"
-                                    max={maximumVolume}
-                                    name="volumeAtual"
-                                    value={volume}
-                                    onChange={(e)=>setTankVolume(parseInt(e.target.value))}
+                                    name="tank_base_area"
+                                    value={tankBaseArea}
+                                    onChange={(e)=>setTankBaseArea(parseInt(e.target.value))}
                                 />
                             </label>
                         </div>
