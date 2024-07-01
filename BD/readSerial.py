@@ -40,12 +40,12 @@ while True:
             measurement = line.split()[3]
             CURRENT_STATE = STATE_WAITING_FOR_START
 
-        print("Nó", senderID, "Medida:", measurement) #TODO: enviar pro banco de Dados       
-        send_request('/samples', 
-                    {"tank_id": senderID,
-                    "top_to_liquid_distance_in_cm": measurement}
-        )
-    time.sleep(0.1) # dar tempo do Serial enviar
+            print("Nó", senderID, "Medida:", measurement) #TODO: enviar pro banco de Dados       
+            send_request('/samples', 
+                        {"tank_id": senderID,
+                        "top_to_liquid_distance_in_cm": measurement}
+            )
+    # time.sleep(0.1) # dar tempo do Serial enviar
         
 
 #ser.close() #nunca fecha a comunicação

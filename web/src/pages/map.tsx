@@ -145,7 +145,11 @@ export default function MapPage() {
                   >
                     <AccordionTrigger>{p.name}</AccordionTrigger>
                     <AccordionContent className="flex flex-col">
-                      {p.current_volume}/{p.maximum_volume} litros
+                      <div>
+                        Id do tanque: {p.id}
+                        <br />
+                        {p.current_volume}/{p.maximum_volume} litros
+                      </div>
                       <Link
                         href={`/tanks/chart?includeTankId=${p.id}`}
                         className="w-max place-self-end px-2"

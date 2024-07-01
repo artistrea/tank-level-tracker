@@ -45,63 +45,42 @@ def seed():
     }
     tank_id = db.execute_db(f"INSERT INTO tanks ({', '.join(tanks_parameters)}) VALUES ({', '.join(8*['?'])})", [new_tank.get(var) for var in tanks_parameters]) 
     new_samples = [
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 0,
-            "timestamp": "2024-05-29 09:00:00"
-        },
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 0,
-            "timestamp": "2024-05-30 09:00:00"
-        },
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 0,
-            "timestamp": "2024-06-01 09:00:00"
-        },
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 0,
-            "timestamp": "2024-06-01 10:00:00"
-        },
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 100,
-            "timestamp": "2024-06-01 11:00:00"
-        },
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 200,
-            "timestamp": "2024-06-01 12:00:00"
-        },
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 300,
-            "timestamp": "2024-06-01 13:00:00"
-        },
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 300,
-            "timestamp": "2024-06-02 13:00:00"
-        },
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 300,
-            "timestamp": "2024-06-03 13:00:00"
-        },
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 300,
-            "timestamp": "2024-06-04 13:00:00"
-        },
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 500,
-            "timestamp": "2024-06-04 14:00:00"
-        },
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 0, "timestamp": "2024-06-01 09:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 0, "timestamp": "2024-06-01 10:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 100, "timestamp": "2024-06-01 11:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 200, "timestamp": "2024-06-01 12:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 300, "timestamp": "2024-06-01 13:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 280, "timestamp": "2024-06-01 14:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 260, "timestamp": "2024-06-01 15:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 240, "timestamp": "2024-06-01 16:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 220, "timestamp": "2024-06-01 17:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 200, "timestamp": "2024-06-01 18:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 180, "timestamp": "2024-06-01 19:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 160, "timestamp": "2024-06-01 20:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 140, "timestamp": "2024-06-01 21:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 120, "timestamp": "2024-06-01 22:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 100, "timestamp": "2024-06-01 23:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 120, "timestamp": "2024-06-02 00:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 140, "timestamp": "2024-06-02 01:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 160, "timestamp": "2024-06-02 02:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 180, "timestamp": "2024-06-02 03:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 200, "timestamp": "2024-06-02 04:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 220, "timestamp": "2024-06-02 05:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 240, "timestamp": "2024-06-02 06:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 260, "timestamp": "2024-06-02 07:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 280, "timestamp": "2024-06-02 08:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 300, "timestamp": "2024-06-02 09:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 280, "timestamp": "2024-06-02 10:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 260, "timestamp": "2024-06-02 11:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 240, "timestamp": "2024-06-02 12:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 220, "timestamp": "2024-06-02 13:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 200, "timestamp": "2024-06-02 14:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 180, "timestamp": "2024-06-02 15:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 160, "timestamp": "2024-06-02 16:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 140, "timestamp": "2024-06-02 17:00:00"},
+        {"tank_id": tank_id, "top_to_liquid_distance_in_cm": 120, "timestamp": "2024-06-02 18:00:00"}
     ]
-
+        
     for new_sample in new_samples:
         db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(3*['?'])})", [new_sample.get(var) for var in samples_parameters])
 
@@ -116,13 +95,116 @@ def seed():
         "longitude": -15.765
     }
     tank_id = db.execute_db(f"INSERT INTO tanks ({', '.join(tanks_parameters)}) VALUES ({', '.join(8*['?'])})", [new_tank.get(var) for var in tanks_parameters]) 
-    new_sample = {
-        "tank_id": tank_id,
-        "top_to_liquid_distance_in_cm": 200,
-        "timestamp": "2024-06-01 09:00:00"
-    }
+    new_samples = [
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 09:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 10:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 11:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 12:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 13:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 14:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 15:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 16:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 17:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 18:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 19:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 20:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 21:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 22:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-01 23:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-02 09:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-02 10:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-02 11:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-02 12:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-02 13:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 200,
+            "timestamp": "2024-06-02 14:00:00"
+        },
+    ]
 
-    db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(3*['?'])})", [new_sample.get(var) for var in samples_parameters])
+    for new_sample in new_samples:
+        db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(3*['?'])})", [new_sample.get(var) for var in samples_parameters])
 
 
 
@@ -136,45 +218,55 @@ def seed():
         "volume_alert_zone": 5,
         "tank_base_area": 2,
         "latitude": -47.862,
-        "longitude": -15.7657
+        "longitude": -15.7627
     }
 
     tank_id = db.execute_db(f"INSERT INTO tanks ({', '.join(tanks_parameters)}) VALUES ({', '.join(8*['?'])})", [new_tank.get(var) for var in tanks_parameters]) 
     new_samples = [
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 700,
-            "timetamp": "2024-09-10 10:00:00"
-        },
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 700,
-            "timetamp": "2024-09-11 11:00:00"
-        },
-        {
-            "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 500,
-            "timetamp": "2024-09-12 12:00:00"
+            "top_to_liquid_distance_in_cm": 199,
+            "timestamp": "2024-06-02 11:00:00"
         },
         {
             "tank_id": tank_id,
             "top_to_liquid_distance_in_cm": 399,
-            "timetamp": "2024-09-13 13:00:00"
+            "timestamp": "2024-06-02 12:00:00"
         },
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 299,
-            "timetamp": "2024-09-14 14:00:00"
+            "top_to_liquid_distance_in_cm": 500,
+            "timestamp": "2024-06-02 13:00:00"
         },
         {
             "tank_id": tank_id,
-            "top_to_liquid_distance_in_cm": 199,
-            "timetamp": "2024-09-15 15:00:00"
+            "top_to_liquid_distance_in_cm": 600,
+            "timestamp": "2024-06-02 14:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 600,
+            "timestamp": "2024-06-02 15:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 600,
+            "timestamp": "2024-06-02 16:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 600,
+            "timestamp": "2024-06-02 15:00:00"
+        },
+        {
+            "tank_id": tank_id,
+            "top_to_liquid_distance_in_cm": 600,
+            "timestamp": "2024-06-02 15:00:00"
         },
     ]
 
     for new_sample in new_samples:
-        db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(2*['?'])})", [new_sample.get(var) for var in samples_parameters])
+        db.execute_db(f"INSERT INTO samples ({', '.join(samples_parameters)}) VALUES ({', '.join(3*['?'])})", [new_sample.get(var) for var in samples_parameters])
 
 
 
