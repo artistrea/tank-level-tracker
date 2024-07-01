@@ -106,7 +106,7 @@ class TanksController:
         data = request.json
 
         if not check(create_tank_schema, data):
-            return jsonify({"message": "It's not possible to create a tank without 'top_to_liquid_distance_in_cm', 'tank_base_area', or 'volume'!"}), 400
+            return jsonify({"message": "It's not possible to create a tank without 'name', 'description', 'maximum_volume', 'volume_danger_zone', 'volume_alert_zone', 'tank_base_area', 'latitude', 'longitude'!"}), 400
 
         tank_id = db.execute_db(f"INSERT INTO tanks ({', '.join(tanks_parameters)}) VALUES ({', '.join(8*['?'])})", [data.get(var) for var in tanks_parameters]) 
         created_tank = db.query_db("SELECT * FROM tanks WHERE id = ?", [tank_id], one=True)
@@ -121,7 +121,7 @@ class TanksController:
         data = request.json
 
         if not check(create_tank_schema, data):
-            return jsonify({"message": "It's not possible to update the tank without 'top_to_liquid_distance_in_cm', 'tank_base_area', or 'volume'!"}), 400
+            return jsonify({"message": "It's not possible to update the tank without 'name', 'description', 'maximum_volume', 'volume_danger_zone', 'volume_alert_zone', 'tank_base_area', 'latitude', 'longitude'!"}), 400
 
         tank = db.query_db("SELECT * FROM tanks WHERE id = ?", [id], one=True)
 
