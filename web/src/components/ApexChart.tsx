@@ -1,7 +1,9 @@
 "use client";
 import dynamic from "next/dynamic";
 
-const ImportedChart = dynamic(() => import("react-apexcharts"), { ssr: false });
+const ImportedChart = dynamic(() => import("react-apexcharts"), {
+  ssr: false,
+});
 
 export function ApexChart({
   series,
@@ -12,14 +14,14 @@ export function ApexChart({
 
   return (
     <ImportedChart
+      chart={{
+        background: "transparent",
+        id: "basic-bar",
+      }}
       {...{
         options: {
           theme: {
             mode: "dark",
-          },
-          chart: {
-            background: "transparent",
-            id: "basic-bar",
           },
           xaxis: {
             type: "datetime",

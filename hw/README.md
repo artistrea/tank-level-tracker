@@ -1,3 +1,6 @@
+LIBERA AS PORTEIRA `sudo chmod a+rw /dev/ttyACM0`
+OU `sudo -E env "PATH=$PATH"`
+
 ## How to compile?
 
 Use [Arduino CLI](https://arduino.github.io/arduino-cli/1.0/installation/).

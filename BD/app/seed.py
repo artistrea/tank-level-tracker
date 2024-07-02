@@ -36,9 +36,9 @@ def seed():
     new_tank = {
         "name": "Tanque 1",
         "description": "Tanque 1",
-        "maximum_volume": 10.5,
-        "volume_danger_zone": 2,
-        "volume_alert_zone": 5,
+        "maximum_volume": 10000,
+        "volume_alert_zone": 5000,
+        "volume_danger_zone": 2000,
         "tank_base_area": 2,
         "latitude": -47.862,
         "longitude": -15.7657
@@ -87,9 +87,9 @@ def seed():
     new_tank = {
         "name": "Tanque 2",
         "description": "Tanque 2",
-        "maximum_volume": 10.5,
-        "volume_danger_zone": 2,
-        "volume_alert_zone": 5,
+        "maximum_volume": 10500,
+        "volume_alert_zone": 5000,
+        "volume_danger_zone": 2000,
         "tank_base_area": 2,
         "latitude": -47.868,
         "longitude": -15.765
@@ -213,9 +213,9 @@ def seed():
     new_tank = {
         "name": "Tanque 3",
         "description": "Tanque 3 description",
-        "maximum_volume": 10.5,
-        "volume_danger_zone": 2,
-        "volume_alert_zone": 5,
+        "maximum_volume": 15000,
+        "volume_alert_zone": 5000,
+        "volume_danger_zone": 2000,
         "tank_base_area": 2,
         "latitude": -47.862,
         "longitude": -15.7627

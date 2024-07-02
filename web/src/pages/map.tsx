@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { EventHandler, FormEvent, useEffect, useRef, useState } from "react";
+import { type EventHandler, type FormEvent, useRef, useState } from "react";
 import { Navbar } from "~/components/navbar";
 import {
   Accordion,
@@ -23,18 +23,21 @@ function pointsToClassifiedPointsMapper(
   const prio = { danger: 2, warning: 1, normal: 0 };
 
   return points
-    ?.map((p) => ({
-      ...p,
-      current_volume: getVolume(p),
-      type:
-        getVolume(p) <= p.volume_danger_zone
-          ? ("danger" as const)
-          : getVolume(p) <= p.volume_alert_zone
-            ? ("warning" as const)
-            : ("normal" as const),
-      lat: p.latitude,
-      long: p.longitude,
-    }))
+    ?.map((p) => {
+      console.log("p", p);
+      return {
+        ...p,
+        current_volume: getVolume(p),
+        type:
+          getVolume(p) <= p.volume_danger_zone
+            ? ("danger" as const)
+            : getVolume(p) <= p.volume_alert_zone
+              ? ("warning" as const)
+              : ("normal" as const),
+        lat: p.latitude,
+        long: p.longitude,
+      };
+    })
     .sort((a, b) =>
       prio[a.type] > prio[b.type] ? -1 : prio[a.type] < prio[b.type] ? 1 : 0,
     );
@@ -79,18 +82,10 @@ export default function MapPage() {
           longitude: lat,
         })
         .then((res) => {
-          baseApi
-            .post("/samples", {
-              tank_id: res.data.id,
-              top_to_liquid_distance_in_cm: 0, //OBS: o tanque adicionado deve estar cheio
-            })
-            .then(() => {
-              console.log(res);
-              location.reload();
-            });
+          location.reload();
           //refetch
         })
-        .catch((e) => console.log(e));
+        .catch((e) => alert(e));
     }
     e.preventDefault();
   };
@@ -103,10 +98,11 @@ export default function MapPage() {
       setSelectedId(ints[0]);
     },
     editEnable
-      ? (e: MapBrowserEvent<any>) => {
-          let [newLong, newLat]: number[] = toLonLat(e.coordinate);
-          setTankLat(newLat as number);
-          setTankLong(newLong as number);
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (e: MapBrowserEvent<any>) => {
+          const [newLong, newLat] = toLonLat(e.coordinate);
+          setTankLat(newLat ?? 0);
+          setTankLong(newLong ?? 0);
           setSelectedId(tempId); // deixar o marcador temporário em destaque
           e.preventDefault();
           return tempId;

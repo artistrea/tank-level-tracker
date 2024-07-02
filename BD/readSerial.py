@@ -20,21 +20,23 @@ STATE_WAITING_FOR_MEASUREMENT = 2
 CURRENT_STATE = STATE_WAITING_FOR_START
 
 
-serial_port = 'COM3'   # verificar qual porta ta conectada
+serial_port = '/dev/ttyACM0'   # verificar qual porta ta conectada
 
 ser = serial.Serial(serial_port, 9600, timeout=1)
 
 while True:
     if ser.in_waiting > 0:
         line = ser.readline().decode('utf-8').strip()
-
+        print(line)
         if CURRENT_STATE==STATE_WAITING_FOR_START:
             if line == "[Gateway]: received message:": # Achou o inicio da transmissao dos dados(id e medida)
                 CURRENT_STATE = STATE_WAITING_FOR_SENDER_ID
+                continue
 
         if CURRENT_STATE==STATE_WAITING_FOR_SENDER_ID:
             senderID = line.split()[3]
             CURRENT_STATE = STATE_WAITING_FOR_MEASUREMENT
+            continue
         
         if CURRENT_STATE == STATE_WAITING_FOR_MEASUREMENT:
             measurement = line.split()[3]
@@ -45,6 +47,7 @@ while True:
                         {"tank_id": senderID,
                         "top_to_liquid_distance_in_cm": measurement}
             )
+            continue
     # time.sleep(0.1) # dar tempo do Serial enviar
         
 

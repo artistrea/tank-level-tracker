@@ -1,8 +1,8 @@
 #ifndef GET_MEASUREMENT_H
 #define GET_MEASUREMENT_H
 
-#define TRIGGER_PIN  3
-#define ECHO_PIN     4
+#define TRIGGER_PIN  0
+#define ECHO_PIN     1
 #define NUM_OF_MEASUREMENTS 3
 
 

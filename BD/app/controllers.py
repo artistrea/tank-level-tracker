@@ -78,7 +78,7 @@ class TanksController:
             FROM tanks t left join (
                 SELECT
                     *,
-                    ROW_NUMBER() OVER (PARTITION BY tank_id ORDER BY timestamp) as row_number
+                    ROW_NUMBER() OVER (PARTITION BY tank_id ORDER BY timestamp desc) as row_number
                 FROM samples
             ) s on s.tank_id = t.id AND s.row_number = 1;
                             """)
@@ -166,7 +166,8 @@ class SamplesController:
 
     @bp.route("/samples", methods = ["POST"])
     def create_sample():
-        auth_service.authorize_request(request, "create", "sample")
+        # [TODO]: fazer autenticação com api key para uso em readSerial.py
+        # auth_service.authorize_request(request, "create", "sample")
         data = request.json
 
         if not check(create_samples_schema, data):
