@@ -20,7 +20,7 @@ STATE_WAITING_FOR_MEASUREMENT = 2
 CURRENT_STATE = STATE_WAITING_FOR_START
 
 
-serial_port = '/dev/ttyACM0'   # verificar qual porta ta conectada
+serial_port = '/dev/ttyACM1'   # verificar qual porta ta conectada
 
 ser = serial.Serial(serial_port, 9600, timeout=1)
 

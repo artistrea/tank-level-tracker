@@ -42,17 +42,22 @@ void setup() {
  
   Serial.println("[Gateway]: finished setup");
 }
-
+#define NTRIPS 60
 uint32_t before_rtt, after_rtt=0;
-
+uint32_t n_trips=0, not_received=0,
+  rttm[NTRIPS], rttmi=0, awaket[NTRIPS], awaketi=0;
 unsigned long lastTransmissionAt;
 // since lora
 void onReceive(int packetSize) {
-  after_rtt = micros();
 
-  Serial.print("[Gateway]: RTT in us: ");
+  after_rtt = millis();
+
+  Serial.print("[Gateway]: RTT in ms: ");
   Serial.println(after_rtt - before_rtt);
+  rttm[rttmi++] = after_rtt - before_rtt;
 
+  lastTransmissionAt = millis();
+  not_received--;
 
   LoRaMessage msg = LoRa_receiveMessage(packetSize);
   // enable_timer();
@@ -67,11 +72,11 @@ void onReceive(int packetSize) {
   Serial.print("[Gateway]: measurement - ");
   Serial.println(*measurement);
 
+
 // since using single lora without downstream notifications:
   // esp32.send(stuff)
-  lastTransmissionAt = millis();
 }
-
+uint32_t t1, t2, t3, t4, t5, t6, t7, t8, t9;
 
 
 void loop() {
@@ -91,10 +96,15 @@ void loop() {
     case SHOULD_BROADCAST:
       Serial.println("[Gateway]: SHOULD_BROAD");
       LoRa_gatewayTxMode();
-
-      before_rtt = micros();
+      not_received++;
+      
+      n_trips++;
+      before_rtt = millis();
+      t1 = millis();
       LoRa_sendGatewayPollBroadcast();
-
+      t2 = millis();
+      Serial.print("tempo pro broadcast ser emitido ");
+      Serial.println(t2-t1);
       // put the radio into receive mode
       LoRa_gatewayRxMode();
       currentState = SHOULD_WAIT_FOR_ANSWERS;
@@ -106,9 +116,33 @@ void loop() {
       LoRa.sleep();
       Serial.println("[Gateway]: finished receiving from all. Sleeping now zzz");
       Serial.flush();
+      awaket[awaketi++] = millis() - t9;
+
+      if (n_trips == NTRIPS) {
+        Serial.print("stats: (rtt: ");
+        long long m = 0;
+        for (int i=0;i<rttmi; i++) {
+          m += rttm[i];
+        }
+        m/=rttmi;
+        Serial.print((int)m);
+        m = 0;
+        for (int i=0;i<awaketi; i++) {
+          m += awaket[i];
+        }
+        m/=awaketi;
+        Serial.print(") (time awake [média]: ");
+        Serial.print((int)m);
+        Serial.print(") (packets lost: ");
+        Serial.print(not_received);
+        Serial.print("/");
+        Serial.print(n_trips);
+        Serial.println();
+      }
       power_all_disable();
       longSleep(MINIMUM_TIME_BETWEEN_POLLING_IN_MS);
       power_all_enable();
+      t9 = millis();
       Serial.println("[Gateway]: waking up");
       currentState = SHOULD_BROADCAST;
       break;

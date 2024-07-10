@@ -39,15 +39,37 @@ void setup() {
   Serial.print("[Node]: finished setup of node ");
   Serial.println(OWN_ID);
 }
+#define NTRIPS 60
 
 
+uint32_t n_trips=0, not_received=0,
+  rttm[NTRIPS], rttmi=0, awaket[NTRIPS], awaketi=0;
 uint32_t measurementToSend = 0;
 bool first_wait = true;
+#define NTRIPS 10
+uint32_t timeAwakeBefore = 0;
+uint32_t timeAwakeAfter = 0;
+uint32_t t1, t2, t3, t4, t5, t6, t7, t8, t9;
 
 void loop() {
   switch (currentState) {
   case SHOULD_SLEEP:
     Serial.println("[Node]: gonna sleep zzz");
+    timeAwakeAfter = millis();
+    Serial.print("[Node]: time awake");
+    Serial.println(timeAwakeAfter - timeAwakeBefore);
+    awaket[awaketi++] = millis() - t9;
+
+    if (n_trips == NTRIPS) {
+      long long m = 0;
+      for (int i=0;i<awaketi; i++) {
+        m += awaket[i];
+      }
+      m/=awaketi;
+      Serial.print("(time awake [média em ms]: ");
+      Serial.print((int)m);
+      Serial.println(")");
+    }
     Serial.flush();
     // SETUP_LOW_POWER
     LoRa.sleep();
@@ -55,6 +77,8 @@ void loop() {
     power_all_disable();
     longSleep(MINIMUM_TIME_BETWEEN_POLLING_IN_MS);
     power_all_enable();
+    timeAwakeBefore = millis();
+    t9 = millis();
     // delay(1000);
     Serial.println("[Node]: stop sleep");
     currentState = SHOULD_PREPARE_FOR_BROADCAST;
@@ -80,6 +104,7 @@ void loop() {
     break;
 
   case SHOULD_TAKE_MEASUREMENT:
+    n_trips++;
     first_wait = true;
     measurementToSend = getMeasurement();
     Serial.print("[Node]: SHOULD_TAKE_MEASUREMENT ");

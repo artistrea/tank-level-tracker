@@ -14,7 +14,7 @@
 #ifndef LORA_FNS_H
 #define LORA_FNS_H
 // 50min = 1.000*60*50 ms = 3.000.000 ms
-#define MINIMUM_TIME_BETWEEN_POLLING_IN_MS 10000
+#define MINIMUM_TIME_BETWEEN_POLLING_IN_MS 1000
 
 // Gateway - Sends messages with enableInvertIQ()
 //         - Receives messages with disableInvertIQ()
