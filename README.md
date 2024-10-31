@@ -1,12 +1,20 @@
-# Trabalho de TR2
-
-GRUPO 10 - LAG
+# Acompanhamento de Tanques de Combustível
 
 Integrantes:
 
-- Geraldo Teixeira do Nascimento Filho, 202024740
-- Lucas Corrêa Boaventura, 211038262
-- Artur Padovesi Piratelli, 211038208
+- Geraldo Teixeira do Nascimento Filho
+- Lucas Corrêa Boaventura
+- Artur Padovesi Piratelli
+
+## Resultados
+
+[Vídeo no youtube mostrando o projeto](https://www.youtube.com/watch?v=n60UQubpjDs)
+
+![alt text](assets/tanques.png)
+
+![alt text](assets/criando-tanque.png)
+
+![alt text](assets/acompanhamento-tanques.png)
 
 ## Estrutura do repositório
 
@@ -14,10 +22,14 @@ Integrantes:
 hw
 └─ Pasta que contém código relacionado ao hardware (Arduíno)
 web
-└─ Pasta que contém código relacionado ao servidor na nuvem e apresentação no front (Next JS).
+└─ Pasta que contém código relacionado à apresentação dos dados no front.
+BD
+└─ Pasta que contém código relacionado ao banco de dados e uma REST API para interação.
 ```
 
 ## Comunicação LoRa
+
+Não foi utilizado o padrão LoRaWAN por motivos de experimentação e aprendizado.
 
 Implementação:
 
